@@ -95,6 +95,7 @@ export { loadProjectMemory, saveProjectMemory } from './storage.js';
 export { detectProjectEnvironment } from './detector.js';
 export { formatContextSummary, formatFullContext } from './formatter.js';
 export { learnFromToolOutput, addCustomNote } from './learner.js';
+export { capturePitfall, captureConvention, captureDecision, searchMemory, getNotesByType } from './pitfall-capture.js';
 export { processPreCompact } from './pre-compact.js';
 export { mapDirectoryStructure, updateDirectoryAccess } from './directory-mapper.js';
 export { trackAccess, getTopHotPaths, decayHotPaths } from './hot-path-tracker.js';

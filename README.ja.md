@@ -4,9 +4,9 @@
 
 [![npm version](https://img.shields.io/npm/v/oh-my-claude-sisyphus?color=cb3837)](https://www.npmjs.com/package/oh-my-claude-sisyphus)
 [![npm downloads](https://img.shields.io/npm/dm/oh-my-claude-sisyphus?color=blue)](https://www.npmjs.com/package/oh-my-claude-sisyphus)
-[![GitHub stars](https://img.shields.io/github/stars/Yeachan-Heo/oh-my-claudecode?style=flat&color=yellow)](https://github.com/Yeachan-Heo/oh-my-claudecode/stargazers)
+[![GitHub stars](https://img.shields.io/github/stars/z23cc/oh-my-claudecode?style=flat&color=yellow)](https://github.com/z23cc/oh-my-claudecode/stargazers)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
-[![Sponsor](https://img.shields.io/badge/Sponsor-❤️-red?style=flat&logo=github)](https://github.com/sponsors/Yeachan-Heo)
+[![Sponsor](https://img.shields.io/badge/Sponsor-❤️-red?style=flat&logo=github)](https://github.com/sponsors/z23cc)
 
 **Claude Code のためのマルチエージェント・オーケストレーション。学習コストゼロ。**
 
@@ -20,7 +20,7 @@
 
 **ステップ 1: インストール**
 ```bash
-/plugin marketplace add https://github.com/Yeachan-Heo/oh-my-claudecode
+/plugin marketplace add https://github.com/z23cc/oh-my-claudecode
 /plugin install oh-my-claudecode
 ```
 
@@ -35,6 +35,30 @@ autopilot: build a REST API for managing tasks
 ```
 
 以上です。あとは自動で進みます。
+
+## Team モード（推奨）
+
+**v4.1.7** 以降、**Team** が OMC の標準オーケストレーション機能です。**swarm** や **ultrapilot** などのレガシーエントリポイントは引き続きサポートされますが、**内部的に Team にルーティング**されます。
+
+```bash
+/oh-my-claudecode:team 3:executor "fix all TypeScript errors"
+```
+
+Team はステージドパイプラインで実行されます：
+
+`team-plan → team-prd → team-exec → team-verify → team-fix（ループ）`
+
+`~/.claude/settings.json` で Claude Code ネイティブチームを有効にしてください：
+
+```json
+{
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+  }
+}
+```
+
+> チームが無効な場合、OMC は警告を表示し、可能な場合は非チーム実行にフォールバックします。
 
 > **注意: パッケージ名について** — プロジェクトのブランド名は **oh-my-claudecode**（リポジトリ、プラグイン、コマンド）ですが、npmパッケージは [`oh-my-claude-sisyphus`](https://www.npmjs.com/package/oh-my-claude-sisyphus) として公開されています。npm/bunでCLIツールをインストールする場合は `npm install -g oh-my-claude-sisyphus` を使用してください。
 
@@ -65,6 +89,7 @@ autopilot: build a REST API for managing tasks
 ## なぜ oh-my-claudecode なのか?
 
 - **設定不要** - 賢いデフォルト設定ですぐに使える
+- **チーム優先オーケストレーション** - Team が標準のマルチエージェントインターフェース（swarm/ultrapilot は互換レイヤー）
 - **自然言語インターフェース** - コマンドを覚える必要なし、やりたいことを話すだけ
 - **自動並列化** - 複雑なタスクを専門エージェントに自動分散
 - **粘り強い実行** - 検証完了まで諦めない
@@ -79,15 +104,15 @@ autopilot: build a REST API for managing tasks
 ### 実行モード
 用途に応じた複数の戦略 - 完全自律ビルドからトークン効率の良いリファクタリングまで。[詳しくはこちら →](https://yeachan-heo.github.io/oh-my-claudecode-website/docs.html#execution-modes)
 
-| モード | スピード | 用途 |
-|------|-------|------|
-| **Autopilot** | 高速 | 完全自律ワークフロー |
-| **Ultrawork** | 並列 | あらゆるタスクの最大並列化 |
-| **Ralph** | 粘り強い | 必ず完遂すべきタスク |
-| **Ultrapilot** | 3〜5倍速 | 複数コンポーネントシステム |
-| **Ecomode** | 高速 + 30〜50%節約 | 予算重視プロジェクト |
-| **Swarm** | 協調 | 並列独立タスク |
-| **Pipeline** | 逐次 | 多段階処理 |
+| モード | 説明 | 用途 |
+|------|------|------|
+| **Team（推奨）** | 標準パイプライン（`team-plan → team-prd → team-exec → team-verify → team-fix`）| 共有タスクリストでのエージェント協調 |
+| **Autopilot** | 自律実行（単一リードエージェント）| 最小限のセレモニーでのエンドツーエンド機能開発 |
+| **Ultrawork** | 最大並列化（非チーム）| Team が不要なバースト並列修正/リファクタリング |
+| **Ralph** | 永続モード + 検証/修正ループ | 完全に完了しなければならないタスク |
+| **Ecomode** | トークン効率ルーティング | 予算意識のある反復 |
+| **Pipeline** | 逐次ステージ処理 | 厳密な順序での多段階変換 |
+| **Swarm / Ultrapilot（レガシー）** | 互換ファサード、**Team** にルーティング | 既存ワークフローと旧ドキュメント |
 
 ### インテリジェント・オーケストレーション
 
@@ -112,14 +137,19 @@ autopilot: build a REST API for managing tasks
 
 | キーワード | 効果 | 例 |
 |---------|-----|-----|
+| `team` | 標準 Team オーケストレーション | `/oh-my-claudecode:team 3:executor "fix all TypeScript errors"` |
 | `autopilot` | 完全自律実行 | `autopilot: build a todo app` |
 | `ralph` | 粘り強いモード | `ralph: refactor auth` |
 | `ulw` | 最大並列化 | `ulw fix all errors` |
 | `eco` | トークン効率実行 | `eco: migrate database` |
 | `plan` | 計画インタビュー | `plan the API` |
 | `ralplan` | 反復的計画合意形成 | `ralplan this feature` |
+| `swarm` | レガシーキーワード（Team にルーティング）| `swarm 5 agents: fix lint errors` |
+| `ultrapilot` | レガシーキーワード（Team にルーティング）| `ultrapilot: build a fullstack app` |
 
-**ralph は ultrawork を含む:** ralph モードを有効にすると、ultrawork の並列実行が自動的に含まれます。キーワードを組み合わせる必要はありません。
+**注意:**
+- **ralph は ultrawork を含む:** ralph モードを有効にすると、ultrawork の並列実行が自動的に含まれます。
+- `swarm N agents` 構文はエージェント数抽出のために認識されますが、v4.1.7+ のランタイムは Team ベースです。
 
 ---
 
@@ -146,6 +176,21 @@ omc wait --stop   # デーモンを無効化
 - **[ウェブサイト](https://yeachan-heo.github.io/oh-my-claudecode-website)** - インタラクティブガイドと例
 - **[移行ガイド](docs/MIGRATION.md)** - v2.x からのアップグレード
 - **[アーキテクチャ](docs/ARCHITECTURE.md)** - 内部の仕組み
+
+---
+
+## セキュリティと信頼性
+
+OMC はスタック全体にわたる多層防御セキュリティで構築されています：
+
+- **アトミックファイルロック** - `O_CREAT|O_EXCL` カーネルレベルロックでタスクの競合状態を防止
+- **パストラバーサル防御** - すべてのファイル操作をシンボリックリンク対応のディレクトリ境界検証
+- **Shell インジェクション防止** - shell 補間の代わりに `execFileSync` + 引数配列を使用
+- **入力サニタイズ** - すべての ID、コミット参照、ファイルパスに正規表現バリデーション
+- **TOCTOU 緩和** - すべての JSON 状態ファイルにアトミック書き込み-リネームパターン
+- **ReDoS 防御** - 安全な交替を持つ有界正規表現パターン
+- **グレースフルデグラデーション** - すべてのオプション操作（git 証拠、ハートビート、監査）が診断ログ付きで安全に失敗
+- **macOS 互換** - `/var`→`/private/var`、`/tmp`→`/private/tmp` パスの完全なシンボリックリンク解決
 
 ---
 
@@ -183,13 +228,13 @@ MIT
 
 ## Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=Yeachan-Heo/oh-my-claudecode&type=date&legend=top-left)](https://www.star-history.com/#Yeachan-Heo/oh-my-claudecode&type=date&legend=top-left)
+[![Star History Chart](https://api.star-history.com/svg?repos=z23cc/oh-my-claudecode&type=date&legend=top-left)](https://www.star-history.com/#z23cc/oh-my-claudecode&type=date&legend=top-left)
 
 ## 💖 このプロジェクトを支援
 
 Oh-My-ClaudeCode があなたのワークフローに役立っているなら、スポンサーをご検討ください:
 
-[![Sponsor on GitHub](https://img.shields.io/badge/Sponsor-❤️-red?style=for-the-badge&logo=github)](https://github.com/sponsors/Yeachan-Heo)
+[![Sponsor on GitHub](https://img.shields.io/badge/Sponsor-❤️-red?style=for-the-badge&logo=github)](https://github.com/sponsors/z23cc)
 
 ### スポンサーになる理由は?
 

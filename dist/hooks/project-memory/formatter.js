@@ -67,6 +67,32 @@ export function formatContextSummary(memory) {
             lines.push(`- ${dir.path}: ${dir.purpose}`);
         }
     }
+    // Add typed notes: pitfalls, conventions, decisions
+    const pitfalls = memory.customNotes.filter(n => n.noteType === 'pitfall').slice(0, 5);
+    const conventions = memory.customNotes.filter(n => n.noteType === 'convention').slice(0, 5);
+    const decisions = memory.customNotes.filter(n => n.noteType === 'decision').slice(0, 3);
+    if (pitfalls.length > 0) {
+        lines.push('');
+        lines.push('**Known Pitfalls:**');
+        for (const note of pitfalls) {
+            lines.push(`- ${note.content}`);
+        }
+    }
+    if (conventions.length > 0) {
+        lines.push('');
+        lines.push('**Discovered Conventions:**');
+        for (const note of conventions) {
+            lines.push(`- ${note.content}`);
+        }
+    }
+    if (decisions.length > 0) {
+        lines.push('');
+        lines.push('**Architecture Decisions:**');
+        for (const note of decisions) {
+            const rationale = note.rationale ? ` (${note.rationale})` : '';
+            lines.push(`- ${note.content}${rationale}`);
+        }
+    }
     return lines.join('\n');
 }
 /**
@@ -140,7 +166,8 @@ export function formatFullContext(memory) {
     if (memory.customNotes.length > 0) {
         lines.push('**Custom Notes:**');
         for (const note of memory.customNotes.slice(0, 5)) {
-            lines.push(`- [${note.category}] ${note.content}`);
+            const tag = note.noteType || note.category;
+            lines.push(`- [${tag}] ${note.content}`);
         }
         lines.push('');
     }

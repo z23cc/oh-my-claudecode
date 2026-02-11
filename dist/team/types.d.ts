@@ -25,6 +25,23 @@ export interface BridgeWorkerPermissions {
     allowedCommands: string[];
     maxFileSize: number;
 }
+/** Evidence collected during task execution */
+export interface TaskEvidence {
+    commits: string[];
+    tests: string[];
+    prs: string[];
+    reviewVerdicts: TaskReviewVerdict[];
+    baseCommit?: string;
+    finalCommit?: string;
+    collectedAt: string;
+}
+/** Review verdict from a review gate */
+export interface TaskReviewVerdict {
+    reviewType: 'code_review' | 'security_review' | 'architect_review';
+    verdict: 'SHIP' | 'NEEDS_WORK' | 'MAJOR_RETHINK';
+    attempt: number;
+    timestamp: string;
+}
 /** Mirrors the JSON structure of ~/.claude/tasks/{team}/{id}.json */
 export interface TaskFile {
     id: string;
@@ -39,9 +56,12 @@ export interface TaskFile {
     claimedBy?: string;
     claimedAt?: number;
     claimPid?: number;
+    evidence?: TaskEvidence;
+    epicId?: string;
+    epicName?: string;
 }
 /** Partial update for a task file (only fields being changed) */
-export type TaskFileUpdate = Partial<Pick<TaskFile, 'status' | 'owner' | 'metadata' | 'claimedBy' | 'claimedAt' | 'claimPid'>>;
+export type TaskFileUpdate = Partial<Pick<TaskFile, 'status' | 'owner' | 'metadata' | 'claimedBy' | 'claimedAt' | 'claimPid' | 'evidence'>>;
 /** JSONL message from lead -> worker (inbox) */
 export interface InboxMessage {
     type: 'message' | 'context';

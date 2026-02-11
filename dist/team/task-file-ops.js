@@ -345,4 +345,16 @@ export function listTaskIds(teamName) {
         return [];
     }
 }
+/**
+ * Complete a task and attach evidence in a single operation.
+ * Task must be in 'in_progress' status.
+ */
+export function completeTaskWithEvidence(teamName, taskId, evidence) {
+    const task = readTask(teamName, taskId);
+    if (!task)
+        throw new Error(`Task not found: ${taskId}`);
+    if (task.status !== 'in_progress')
+        throw new Error(`Task ${taskId} not in_progress`);
+    updateTask(teamName, taskId, { status: 'completed', evidence });
+}
 //# sourceMappingURL=task-file-ops.js.map

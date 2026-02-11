@@ -77,6 +77,33 @@ export {
   gitMasterAgent
 } from './definitions.js';
 
+// Coordination & Scout agents
+export {
+  planSyncAgent,
+  primeScoutAgent,
+  githubScoutAgent
+} from './definitions.js';
+
+// Prime Assessment Scouts
+export {
+  buildScoutAgent,
+  claudeMdScoutAgent,
+  envScoutAgent,
+  testingScoutAgent,
+  toolingScoutAgent,
+  securityScoutAgent,
+  workflowScoutAgent,
+  observabilityScoutAgent,
+  docsScoutAgent,
+  docsGapScoutAgent,
+  practiceScoutAgent,
+  repoScoutAgent,
+  epicScoutAgent,
+  flowGapAnalystAgent,
+  qualityAuditorAgent,
+  contextScoutAgent
+} from './definitions.js';
+
 // Core exports (getAgentDefinitions and omcSystemPrompt)
 export {
   getAgentDefinitions,

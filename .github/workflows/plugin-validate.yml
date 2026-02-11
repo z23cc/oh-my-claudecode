@@ -1,0 +1,148 @@
+name: Plugin Validation
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'agents/**'
+      - 'skills/**'
+      - 'hooks/**'
+      - '.claude-plugin/**'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'agents/**'
+      - 'skills/**'
+      - 'hooks/**'
+      - '.claude-plugin/**'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate-agents:
+    name: Validate Agent Definitions
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check agent frontmatter
+        run: |
+          errors=0
+          for f in agents/*.md; do
+            [ -f "$f" ] || continue
+            name=$(basename "$f" .md)
+            # Check frontmatter exists
+            if ! head -1 "$f" | grep -q '^---'; then
+              echo "ERROR: $f missing YAML frontmatter"
+              errors=$((errors + 1))
+              continue
+            fi
+            # Check required fields
+            for field in name description model; do
+              if ! sed -n '1,/^---$/p' "$f" | grep -q "^${field}:"; then
+                echo "ERROR: $f missing required field: $field"
+                errors=$((errors + 1))
+              fi
+            done
+          done
+          echo "Checked $(ls agents/*.md 2>/dev/null | wc -l) agent files"
+          exit $errors
+
+  validate-skills:
+    name: Validate Skill Definitions
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check SKILL.md exists for each skill
+        run: |
+          errors=0
+          for d in skills/*/; do
+            [ -d "$d" ] || continue
+            skill=$(basename "$d")
+            if [ ! -f "${d}SKILL.md" ]; then
+              echo "ERROR: ${d} missing SKILL.md"
+              errors=$((errors + 1))
+            fi
+          done
+          echo "Checked $(ls -d skills/*/ 2>/dev/null | wc -l) skill directories"
+          exit $errors
+
+  validate-hooks:
+    name: Validate Hook Configuration
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate hooks.json syntax
+        run: python3 -c "import json; json.load(open('hooks/hooks.json'))" && echo "hooks.json: valid JSON"
+
+      - name: Check hook script references exist
+        run: |
+          errors=0
+          # Extract script paths from hooks.json
+          scripts=$(python3 -c "
+          import json, re
+          data = json.load(open('hooks/hooks.json'))
+          for event in data.get('hooks', {}).values():
+            for group in event:
+              for hook in group.get('hooks', []):
+                cmd = hook.get('command', '')
+                # Extract path after plugin root variable
+                m = re.search(r'/scripts/([^\s\"]+)', cmd)
+                if m:
+                  print(f'scripts/{m.group(1)}')
+          ")
+          for script in $scripts; do
+            if [ ! -f "$script" ]; then
+              echo "ERROR: Hook references missing script: $script"
+              errors=$((errors + 1))
+            fi
+          done
+          exit $errors
+
+  validate-plugin-json:
+    name: Validate Plugin Metadata
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check plugin.json
+        run: |
+          python3 -c "
+          import json, sys
+          data = json.load(open('.claude-plugin/plugin.json'))
+          required = ['name', 'version', 'description']
+          missing = [f for f in required if f not in data]
+          if missing:
+            print(f'ERROR: plugin.json missing fields: {missing}')
+            sys.exit(1)
+          print(f'Plugin: {data[\"name\"]} v{data[\"version\"]}')
+          "
+
+  cross-platform-check:
+    name: Cross-Platform Compatibility
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        node: ['20', '22']
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type check
+        run: npx tsc --noEmit
+
+      - name: Run tests
+        run: npm test -- --run

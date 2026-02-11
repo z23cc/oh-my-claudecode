@@ -92,7 +92,7 @@ Use the AskUserQuestion tool to prompt the user:
 mkdir -p .claude
 
 # Download fresh CLAUDE.md from GitHub
-curl -fsSL "https://raw.githubusercontent.com/Yeachan-Heo/oh-my-claudecode/main/docs/CLAUDE.md" -o .claude/CLAUDE.md && \
+curl -fsSL "https://raw.githubusercontent.com/z23cc/oh-my-claudecode/main/docs/CLAUDE.md" -o .claude/CLAUDE.md && \
 echo "Downloaded CLAUDE.md to .claude/CLAUDE.md"
 ```
 
@@ -100,7 +100,7 @@ echo "Downloaded CLAUDE.md to .claude/CLAUDE.md"
 
 ```bash
 # Download fresh CLAUDE.md to global config
-curl -fsSL "https://raw.githubusercontent.com/Yeachan-Heo/oh-my-claudecode/main/docs/CLAUDE.md" -o ~/.claude/CLAUDE.md && \
+curl -fsSL "https://raw.githubusercontent.com/z23cc/oh-my-claudecode/main/docs/CLAUDE.md" -o ~/.claude/CLAUDE.md && \
 echo "Downloaded CLAUDE.md to ~/.claude/CLAUDE.md"
 ```
 
@@ -458,7 +458,7 @@ Use the AskUserQuestion tool to prompt the user:
 If user chooses "Yes, star it!":
 
 ```bash
-gh api -X PUT /user/starred/Yeachan-Heo/oh-my-claudecode 2>/dev/null && echo "Thanks for starring! ⭐" || echo "Could not star - you can star manually at https://github.com/Yeachan-Heo/oh-my-claudecode"
+gh api -X PUT /user/starred/z23cc/oh-my-claudecode 2>/dev/null && echo "Thanks for starring! ⭐" || echo "Could not star - you can star manually at https://github.com/z23cc/oh-my-claudecode"
 ```
 
 **Note:** Fail gracefully if the API call doesn't work - never block setup completion.
@@ -470,11 +470,11 @@ Skip the AskUserQuestion and just display:
 ```bash
 echo ""
 echo "If you enjoy oh-my-claudecode, consider starring the repo:"
-echo "  https://github.com/Yeachan-Heo/oh-my-claudecode"
+echo "  https://github.com/z23cc/oh-my-claudecode"
 echo ""
 ```
 
 ## Fallback
 
 If curl fails, tell user to manually download from:
-https://raw.githubusercontent.com/Yeachan-Heo/oh-my-claudecode/main/docs/CLAUDE.md
+https://raw.githubusercontent.com/z23cc/oh-my-claudecode/main/docs/CLAUDE.md

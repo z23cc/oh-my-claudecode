@@ -214,7 +214,7 @@ fi
 # Download fresh OMC content to temp file
 TEMP_OMC=$(mktemp /tmp/omc-claude-XXXXXX.md)
 trap 'rm -f "$TEMP_OMC"' EXIT
-curl -fsSL "https://raw.githubusercontent.com/Yeachan-Heo/oh-my-claudecode/main/docs/CLAUDE.md" -o "$TEMP_OMC"
+curl -fsSL "https://raw.githubusercontent.com/z23cc/oh-my-claudecode/main/docs/CLAUDE.md" -o "$TEMP_OMC"
 
 if [ ! -s "$TEMP_OMC" ]; then
   echo "ERROR: Failed to download CLAUDE.md. Aborting."
@@ -289,7 +289,7 @@ fi
 
 **FALLBACK** if curl fails:
 Tell user to manually download from:
-https://raw.githubusercontent.com/Yeachan-Heo/oh-my-claudecode/main/docs/CLAUDE.md
+https://raw.githubusercontent.com/z23cc/oh-my-claudecode/main/docs/CLAUDE.md
 
 ### Verify Plugin Installation
 
@@ -353,7 +353,7 @@ fi
 # Download fresh OMC content to temp file
 TEMP_OMC=$(mktemp /tmp/omc-claude-XXXXXX.md)
 trap 'rm -f "$TEMP_OMC"' EXIT
-curl -fsSL "https://raw.githubusercontent.com/Yeachan-Heo/oh-my-claudecode/main/docs/CLAUDE.md" -o "$TEMP_OMC"
+curl -fsSL "https://raw.githubusercontent.com/z23cc/oh-my-claudecode/main/docs/CLAUDE.md" -o "$TEMP_OMC"
 
 if [ ! -s "$TEMP_OMC" ]; then
   echo "ERROR: Failed to download CLAUDE.md. Aborting."
@@ -1038,7 +1038,7 @@ Use the AskUserQuestion tool to prompt the user:
 If user chooses "Yes, star it!":
 
 ```bash
-gh api -X PUT /user/starred/Yeachan-Heo/oh-my-claudecode 2>/dev/null && echo "Thanks for starring! ⭐" || true
+gh api -X PUT /user/starred/z23cc/oh-my-claudecode 2>/dev/null && echo "Thanks for starring! ⭐" || true
 ```
 
 **Note:** Fail silently if the API call doesn't work - never block setup completion.
@@ -1048,7 +1048,7 @@ gh api -X PUT /user/starred/Yeachan-Heo/oh-my-claudecode 2>/dev/null && echo "Th
 ```bash
 echo ""
 echo "If you enjoy oh-my-claudecode, consider starring the repo:"
-echo "  https://github.com/Yeachan-Heo/oh-my-claudecode"
+echo "  https://github.com/z23cc/oh-my-claudecode"
 echo ""
 ```
 
@@ -1147,5 +1147,5 @@ EXAMPLES:
   /oh-my-claudecode:omc-setup --global  # Update all projects
   /oh-my-claudecode:omc-setup --force   # Re-run full setup wizard
 
-For more info: https://github.com/Yeachan-Heo/oh-my-claudecode
+For more info: https://github.com/z23cc/oh-my-claudecode
 ```

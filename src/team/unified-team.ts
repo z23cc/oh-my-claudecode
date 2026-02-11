@@ -58,7 +58,7 @@ export function getTeamMembers(
         }
       }
     }
-  } catch { /* graceful degradation - config may not exist */ }
+  } catch (e) { process.stderr.write(`[omc] DEBUG: unified-team config read failed: ${e}\n`); }
 
   // 2. Read MCP workers from shadow registry + heartbeat
   try {
@@ -92,7 +92,7 @@ export function getTeamMembers(
         currentTaskId: heartbeat?.currentTaskId ?? null,
       });
     }
-  } catch { /* graceful degradation */ }
+  } catch (e) { process.stderr.write(`[omc] DEBUG: unified-team MCP worker read failed: ${e}\n`); }
 
   return members;
 }

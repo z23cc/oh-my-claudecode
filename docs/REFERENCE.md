@@ -29,7 +29,7 @@ Complete reference for oh-my-claudecode. For quick start, see the main [README.m
 
 ```bash
 # Step 1: Add the marketplace
-/plugin marketplace add https://github.com/Yeachan-Heo/oh-my-claudecode
+/plugin marketplace add https://github.com/z23cc/oh-my-claudecode
 
 # Step 2: Install the plugin
 /plugin install oh-my-claudecode
@@ -677,7 +677,7 @@ To manually update, re-run the plugin install command or use Claude Code's built
 ### Uninstall
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Yeachan-Heo/oh-my-claudecode/main/scripts/uninstall.sh | bash
+curl -fsSL https://raw.githubusercontent.com/z23cc/oh-my-claudecode/main/scripts/uninstall.sh | bash
 ```
 
 Or manually:

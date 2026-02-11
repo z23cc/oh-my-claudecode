@@ -33,6 +33,16 @@ export interface VerificationState {
   requested_at: string;
   /** Original ralph task */
   original_task: string;
+  /** Whether code review has passed */
+  code_review_passed?: boolean;
+  /** Whether security review has passed */
+  security_review_passed?: boolean;
+  /** Number of code review attempts */
+  code_review_attempts: number;
+  /** Number of security review attempts */
+  security_review_attempts: number;
+  /** Max review attempts before skipping */
+  max_review_attempts: number;
 }
 
 const DEFAULT_MAX_VERIFICATION_ATTEMPTS = 3;
@@ -123,7 +133,12 @@ export function startVerification(
     verification_attempts: 0,
     max_verification_attempts: DEFAULT_MAX_VERIFICATION_ATTEMPTS,
     requested_at: new Date().toISOString(),
-    original_task: originalTask
+    original_task: originalTask,
+    code_review_passed: false,
+    security_review_passed: false,
+    code_review_attempts: 0,
+    security_review_attempts: 0,
+    max_review_attempts: 2,
   };
 
   writeVerificationState(directory, state, sessionId);
@@ -169,6 +184,30 @@ export function recordArchitectFeedback(
  * Generate architect verification prompt
  */
 export function getArchitectVerificationPrompt(state: VerificationState): string {
+  const reviewSteps: string[] = [];
+
+  // Insert code review step if not yet passed
+  if (!state.code_review_passed) {
+    reviewSteps.push(`
+0. **Code Review Gate** (attempt ${state.code_review_attempts + 1}/${state.max_review_attempts}):
+   Spawn code-reviewer agent to review the changes.
+   Verdict must be SHIP (no CRITICAL/HIGH issues).
+   If NEEDS_WORK: fix issues and re-submit. If MAJOR_RETHINK: escalate.`);
+  }
+
+  // Insert security review step if not yet passed
+  if (!state.security_review_passed) {
+    reviewSteps.push(`
+0. **Security Review Gate** (attempt ${state.security_review_attempts + 1}/${state.max_review_attempts}):
+   Spawn security-reviewer agent to scan for vulnerabilities.
+   Verdict must be SHIP (no critical vulnerabilities).
+   If NEEDS_WORK: fix issues and re-submit. If MAJOR_RETHINK: escalate.`);
+  }
+
+  const reviewBlock = reviewSteps.length > 0
+    ? `## REVIEW GATES (before architect verification)\n${reviewSteps.join('\n')}\n\n`
+    : '';
+
   return `<ralph-verification>
 
 [ARCHITECT VERIFICATION REQUIRED - Attempt ${state.verification_attempts + 1}/${state.max_verification_attempts}]
@@ -183,7 +222,7 @@ ${state.completion_claim}
 
 ${state.architect_feedback ? `**Previous Architect Feedback (rejected):**\n${state.architect_feedback}\n` : ''}
 
-## MANDATORY VERIFICATION STEPS
+${reviewBlock}## MANDATORY VERIFICATION STEPS
 
 1. **Spawn Architect Agent** for verification:
    \`\`\`

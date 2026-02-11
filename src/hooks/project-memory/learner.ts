@@ -8,6 +8,7 @@ import { BUILD_COMMAND_PATTERNS, TEST_COMMAND_PATTERNS } from './constants.js';
 import { CustomNote } from './types.js';
 import { trackAccess } from './hot-path-tracker.js';
 import { detectDirectivesFromMessage, addDirective } from './directive-detector.js';
+import { capturePitfall } from './pitfall-capture.js';
 
 /**
  * Learn from tool output and update project memory
@@ -108,6 +109,17 @@ export async function learnFromToolOutput(
       // Limit custom notes to 20 entries
       if (memory.customNotes.length > 20) {
         memory.customNotes = memory.customNotes.slice(-20);
+      }
+    }
+
+    // Detect review rejections and capture as pitfalls
+    if (toolOutput.includes('NEEDS_WORK') || toolOutput.includes('MAJOR_RETHINK')) {
+      const issueMatches = toolOutput.match(/\[(?:CRITICAL|HIGH)\]\s*(.+?)(?:\n|$)/g);
+      if (issueMatches) {
+        for (const issue of issueMatches.slice(0, 3)) {
+          await capturePitfall(projectRoot, issue.trim());
+        }
+        updated = true;
       }
     }
 

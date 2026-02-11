@@ -29,15 +29,32 @@ Ralph is a persistence loop that keeps working on a task until it is fully compl
 Complex tasks often fail silently: partial implementations get declared "done", tests get skipped, edge cases get forgotten. Ralph prevents this by looping until work is genuinely complete, requiring fresh verification evidence before allowing completion, and using tiered architect review to confirm quality.
 </Why_This_Exists>
 
+<Configuration>
+Ralph behavior is controlled by `.omc/config.json` (project) or environment variables:
+
+| Config Key / Env Var | Default | Description |
+|----------------------|---------|-------------|
+| `ralph.maxIterations` / `OMC_RALPH_MAX_ITERATIONS` | 10 | Max retry iterations before abort |
+| `ralph.maxTurns` / `OMC_RALPH_MAX_TURNS` | 200 | Max tool turns per iteration |
+| `ralph.maxAttemptsPerTask` / `OMC_RALPH_MAX_ATTEMPTS` | 3 | Max attempts per individual task |
+| `ralph.requirePlanReview` / `OMC_RALPH_REQUIRE_PLAN_REVIEW` | false | Require plan review before impl |
+| `ralph.branchMode` / `OMC_RALPH_BRANCH_MODE` | "new" | Branch strategy: "new" or "worktree" |
+| `ralph.reviewBackend` / `FLOW_REVIEW_BACKEND` | null | Review backend: "rp", "codex", or "none" |
+| `ralph.debug` / `OMC_RALPH_DEBUG` | false | Enable verbose debug logging |
+</Configuration>
+
 <Execution_Policy>
 - Fire independent agent calls simultaneously -- never wait sequentially for independent work
 - Use `run_in_background: true` for long operations (installs, builds, test suites)
 - Always pass the `model` parameter explicitly when delegating to agents
 - Read `docs/shared/agent-tiers.md` before first delegation to select correct agent tiers
 - Deliver the full implementation: no scope reduction, no partial completion, no deleting tests to make them pass
+- Respect max iteration/turn/attempt limits from Configuration above
+- If `requirePlanReview` is true, run a plan review (via review backend) before starting implementation
 </Execution_Policy>
 
 <Steps>
+0. **Re-anchor**: Run `git rev-parse HEAD` (save as BASE_COMMIT), `git status`, re-read task requirements, run baseline build/test, load project memory pitfalls from `.omc/project-memory.json`.
 1. **Review progress**: Check TODO list and any prior iteration state
 2. **Continue from where you left off**: Pick up incomplete tasks
 3. **Delegate in parallel**: Route tasks to specialist agents at appropriate tiers

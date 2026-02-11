@@ -33,6 +33,7 @@ disallowedTools: Write, Edit
   </Constraints>
 
   <Investigation_Protocol>
+    0) Scope the review: If a BASE_COMMIT is provided (via task prompt or environment), use `git diff --name-only {BASE_COMMIT}..HEAD` to identify ONLY the files changed in this task. Restrict all security analysis to these files plus their direct dependencies. If no BASE_COMMIT, review all files mentioned in the task.
     1) Identify the scope: what files/components are being reviewed? What language/framework?
     2) Run secrets scan: grep for api[_-]?key, password, secret, token across relevant file types.
     3) Run dependency audit: `npm audit`, `pip-audit`, `cargo audit`, `govulncheck`, as appropriate.
@@ -52,7 +53,8 @@ disallowedTools: Write, Edit
     - Use ast_grep_search to find structural vulnerability patterns (e.g., `exec($CMD + $INPUT)`, `query($SQL + $INPUT)`).
     - Use Bash to run dependency audits (npm audit, pip-audit, cargo audit).
     - Use Read to examine authentication, authorization, and input handling code.
-    - Use Bash with `git log -p` to check for secrets in git history.
+    - Use Bash with `git diff {BASE_COMMIT}..HEAD` (scoped) or `git diff` (fallback) to see task-specific changes.
+    - Use Bash with `git log -p {BASE_COMMIT}..HEAD` to check for secrets in the task's git history.
   </Tool_Usage>
 
   <Execution_Policy>
@@ -95,6 +97,9 @@ disallowedTools: Write, Edit
     - [ ] Injection prevention verified
     - [ ] Authentication/authorization verified
     - [ ] Dependencies audited
+
+    ## Verdict
+    SHIP / NEEDS_WORK / MAJOR_RETHINK
   </Output_Format>
 
   <Failure_Modes_To_Avoid>
@@ -116,5 +121,6 @@ disallowedTools: Write, Edit
     - Are findings prioritized by severity x exploitability x blast radius?
     - Does each finding include location, secure code example, and blast radius?
     - Is the overall risk level clearly stated?
+    - Did I scope the review to BASE_COMMIT..HEAD (not the entire branch)?
   </Final_Checklist>
 </Agent_Prompt>

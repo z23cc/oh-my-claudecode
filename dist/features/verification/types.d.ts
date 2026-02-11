@@ -6,7 +6,7 @@
 /**
  * Types of verification evidence
  */
-export type VerificationEvidenceType = 'build_success' | 'test_pass' | 'lint_clean' | 'functionality_verified' | 'architect_approval' | 'todo_complete' | 'error_free';
+export type VerificationEvidenceType = 'build_success' | 'test_pass' | 'lint_clean' | 'functionality_verified' | 'architect_approval' | 'todo_complete' | 'error_free' | 'code_review_pass' | 'security_review_pass';
 /**
  * Proof of verification for a specific check
  */
@@ -96,7 +96,7 @@ export interface VerificationSummary {
     /** List of failed check IDs */
     failedChecks: string[];
     /** Overall verdict */
-    verdict: 'approved' | 'rejected' | 'incomplete';
+    verdict: 'approved' | 'rejected' | 'incomplete' | 'needs_work';
 }
 /**
  * Result of validation
@@ -138,5 +138,19 @@ export interface ReportOptions {
     format?: 'text' | 'markdown' | 'json';
     /** Whether to colorize output (for terminal) */
     colorize?: boolean;
+}
+/**
+ * Receipt from a review gate (code review, security review, etc.)
+ */
+export interface ReviewReceipt {
+    taskId: string;
+    reviewType: 'code_review' | 'security_review' | 'architect_review';
+    verdict: 'SHIP' | 'NEEDS_WORK' | 'MAJOR_RETHINK';
+    model: string;
+    timestamp: string;
+    sessionId?: string;
+    issues?: string[];
+    attempt: number;
+    maxAttempts: number;
 }
 //# sourceMappingURL=types.d.ts.map

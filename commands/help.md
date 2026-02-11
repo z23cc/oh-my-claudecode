@@ -56,8 +56,8 @@ But now you don't NEED them - everything is automatic.
 
 ## Need More Help?
 
-- **README**: https://github.com/Yeachan-Heo/oh-my-claudecode
-- **Issues**: https://github.com/Yeachan-Heo/oh-my-claudecode/issues
+- **README**: https://github.com/z23cc/oh-my-claudecode
+- **Issues**: https://github.com/z23cc/oh-my-claudecode/issues
 
 ---
 

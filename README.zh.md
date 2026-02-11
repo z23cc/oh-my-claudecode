@@ -4,9 +4,9 @@
 
 [![npm version](https://img.shields.io/npm/v/oh-my-claude-sisyphus?color=cb3837)](https://www.npmjs.com/package/oh-my-claude-sisyphus)
 [![npm downloads](https://img.shields.io/npm/dm/oh-my-claude-sisyphus?color=blue)](https://www.npmjs.com/package/oh-my-claude-sisyphus)
-[![GitHub stars](https://img.shields.io/github/stars/Yeachan-Heo/oh-my-claudecode?style=flat&color=yellow)](https://github.com/Yeachan-Heo/oh-my-claudecode/stargazers)
+[![GitHub stars](https://img.shields.io/github/stars/z23cc/oh-my-claudecode?style=flat&color=yellow)](https://github.com/z23cc/oh-my-claudecode/stargazers)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
-[![Sponsor](https://img.shields.io/badge/Sponsor-❤️-red?style=flat&logo=github)](https://github.com/sponsors/Yeachan-Heo)
+[![Sponsor](https://img.shields.io/badge/Sponsor-❤️-red?style=flat&logo=github)](https://github.com/sponsors/z23cc)
 
 **Claude Code 的多智能体编排系统。零学习曲线。**
 
@@ -20,7 +20,7 @@
 
 **第一步：安装**
 ```bash
-/plugin marketplace add https://github.com/Yeachan-Heo/oh-my-claudecode
+/plugin marketplace add https://github.com/z23cc/oh-my-claudecode
 /plugin install oh-my-claudecode
 ```
 
@@ -35,6 +35,30 @@ autopilot: build a REST API for managing tasks
 ```
 
 就这么简单。其余都是自动的。
+
+## Team 模式（推荐）
+
+从 **v4.1.7** 开始，**Team** 是 OMC 中的标准编排入口。旧的入口点如 **swarm** 和 **ultrapilot** 仍然支持，但它们现在**底层路由到 Team**。
+
+```bash
+/oh-my-claudecode:team 3:executor "fix all TypeScript errors"
+```
+
+Team 以流水线模式运行：
+
+`team-plan → team-prd → team-exec → team-verify → team-fix (循环)`
+
+在 `~/.claude/settings.json` 中启用 Claude Code 原生团队：
+
+```json
+{
+  "env": {
+    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS": "1"
+  }
+}
+```
+
+> 如果未启用团队功能，OMC 会发出警告并尽可能回退到非团队执行。
 
 > **注意：包命名** — 项目品牌名为 **oh-my-claudecode**（仓库、插件、命令），但 npm 包以 [`oh-my-claude-sisyphus`](https://www.npmjs.com/package/oh-my-claude-sisyphus) 发布。通过 npm/bun 安装 CLI 工具时，请使用 `npm install -g oh-my-claude-sisyphus`。
 
@@ -65,6 +89,7 @@ autopilot: build a REST API for managing tasks
 ## 为什么选择 oh-my-claudecode？
 
 - **无需配置** - 开箱即用，智能默认设置
+- **团队优先编排** - Team 是标准的多智能体入口（swarm/ultrapilot 为兼容层）
 - **自然语言交互** - 无需记忆命令，只需描述你的需求
 - **自动并行化** - 复杂任务自动分配给专业智能体
 - **持久执行** - 不会半途而废，直到任务验证完成
@@ -79,15 +104,15 @@ autopilot: build a REST API for managing tasks
 ### 执行模式
 针对不同场景的多种策略 - 从全自动构建到 token 高效重构。[了解更多 →](https://yeachan-heo.github.io/oh-my-claudecode-website/docs.html#execution-modes)
 
-| 模式 | 速度 | 适用场景 |
-|------|-------|---------|
-| **Autopilot** | 快速 | 全自动工作流 |
-| **Ultrawork** | 并行 | 任何任务的最大并行化 |
-| **Ralph** | 持久 | 必须完整完成的任务 |
-| **Ultrapilot** | 3-5倍速 | 多组件系统 |
-| **Ecomode** | 快速 + 省30-50%成本 | 预算有限的项目 |
-| **Swarm** | 协同 | 并行独立任务 |
-| **Pipeline** | 顺序 | 多阶段处理 |
+| 模式 | 说明 | 适用场景 |
+|------|------|---------|
+| **Team（推荐）** | 标准流水线（`team-plan → team-prd → team-exec → team-verify → team-fix`）| 多智能体协作的共享任务列表 |
+| **Autopilot** | 自主执行（单主智能体）| 最少流程的端到端功能开发 |
+| **Ultrawork** | 最大并行化（非团队）| 不需要 Team 的批量并行修复/重构 |
+| **Ralph** | 持久模式 + 验证/修复循环 | 必须完整完成的任务（无静默部分完成）|
+| **Ecomode** | token 高效路由 | 预算有限的迭代 |
+| **Pipeline** | 顺序分阶段处理 | 严格顺序的多步骤转换 |
+| **Swarm / Ultrapilot（旧版）** | 兼容层，路由到 **Team** | 现有工作流和旧文档 |
 
 ### 智能编排
 
@@ -112,14 +137,19 @@ autopilot: build a REST API for managing tasks
 
 | 关键词 | 效果 | 示例 |
 |---------|--------|---------|
+| `team` | 标准 Team 编排 | `/oh-my-claudecode:team 3:executor "fix all TypeScript errors"` |
 | `autopilot` | 全自动执行 | `autopilot: build a todo app` |
 | `ralph` | 持久模式 | `ralph: refactor auth` |
 | `ulw` | 最大并行化 | `ulw fix all errors` |
 | `eco` | token 高效执行 | `eco: migrate database` |
 | `plan` | 规划访谈 | `plan the API` |
 | `ralplan` | 迭代规划共识 | `ralplan this feature` |
+| `swarm` | 旧版关键词（路由到 Team）| `swarm 5 agents: fix lint errors` |
+| `ultrapilot` | 旧版关键词（路由到 Team）| `ultrapilot: build a fullstack app` |
 
-**ralph 包含 ultrawork：** 激活 ralph 模式时，会自动包含 ultrawork 的并行执行。无需组合关键词。
+**说明：**
+- **ralph 包含 ultrawork：** 激活 ralph 模式时，会自动包含 ultrawork 的并行执行。
+- `swarm N agents` 语法仍可识别用于提取智能体数量，但在 v4.1.7+ 中运行时为 Team 驱动。
 
 ---
 
@@ -146,6 +176,21 @@ omc wait --stop   # 禁用守护进程
 - **[网站](https://yeachan-heo.github.io/oh-my-claudecode-website)** - 交互式指南和示例
 - **[迁移指南](docs/MIGRATION.md)** - 从 v2.x 升级
 - **[架构](docs/ARCHITECTURE.md)** - 底层工作原理
+
+---
+
+## 安全性与可靠性
+
+OMC 在整个技术栈中采用纵深防御安全策略：
+
+- **原子文件锁** - `O_CREAT|O_EXCL` 内核级锁防止任务竞态条件
+- **路径遍历防护** - 所有文件操作经过目录边界验证，支持符号链接感知解析
+- **Shell 注入防护** - 使用 `execFileSync` 配合参数数组，而非 shell 字符串拼接
+- **输入净化** - 对所有 ID、commit 引用和文件路径在使用前进行正则验证
+- **TOCTOU 缓解** - 对所有 JSON 状态文件采用原子写入-重命名模式
+- **ReDoS 防护** - 使用有界正则模式和安全的交替匹配
+- **优雅降级** - 所有可选操作（git 证据、心跳、审计）安全失败并附带诊断日志
+- **macOS 兼容** - 完整的符号链接解析，支持 `/var`→`/private/var`、`/tmp`→`/private/tmp` 路径
 
 ---
 
@@ -183,13 +228,13 @@ MIT
 
 ## Star 历史
 
-[![Star History Chart](https://api.star-history.com/svg?repos=Yeachan-Heo/oh-my-claudecode&type=date&legend=top-left)](https://www.star-history.com/#Yeachan-Heo/oh-my-claudecode&type=date&legend=top-left)
+[![Star History Chart](https://api.star-history.com/svg?repos=z23cc/oh-my-claudecode&type=date&legend=top-left)](https://www.star-history.com/#z23cc/oh-my-claudecode&type=date&legend=top-left)
 
 ## 💖 支持本项目
 
 如果 Oh-My-ClaudeCode 帮助了你的工作流，请考虑赞助：
 
-[![Sponsor on GitHub](https://img.shields.io/badge/Sponsor-❤️-red?style=for-the-badge&logo=github)](https://github.com/sponsors/Yeachan-Heo)
+[![Sponsor on GitHub](https://img.shields.io/badge/Sponsor-❤️-red?style=for-the-badge&logo=github)](https://github.com/sponsors/z23cc)
 
 ### 为什么赞助？
 

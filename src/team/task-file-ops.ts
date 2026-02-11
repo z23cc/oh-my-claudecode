@@ -10,9 +10,10 @@
 import { readFileSync, readdirSync, existsSync, openSync, closeSync, unlinkSync, writeSync, statSync, constants as fsConstants } from 'fs';
 import { join } from 'path';
 import { homedir } from 'os';
-import type { TaskFile, TaskFileUpdate, TaskFailureSidecar } from './types.js';
+import type { TaskFile, TaskFileUpdate, TaskFailureSidecar, TaskEvidence } from './types.js';
 import { sanitizeName } from './tmux-session.js';
 import { atomicWriteJson, validateResolvedPath, ensureDirWithMode } from './fs-utils.js';
+import { TaskError } from './errors.js';
 
 // ─── Lock-based atomic claiming ────────────────────────────────────────────
 
@@ -202,7 +203,7 @@ export function updateTask(
       const raw = readFileSync(filePath, 'utf-8');
       task = JSON.parse(raw) as Record<string, unknown>;
     } catch {
-      throw new Error(`Task file not found or malformed: ${taskId}`);
+      throw new TaskError(`Task file not found or malformed: ${taskId}`, taskId, 'task_not_found');
     }
     for (const [key, value] of Object.entries(updates)) {
       if (value !== undefined) {
@@ -219,10 +220,17 @@ export function updateTask(
 
   const handle = acquireTaskLock(teamName, taskId);
   if (!handle) {
-    // Fallback: another worker holds the lock — proceed without lock + warn
-    // This maintains backward compatibility while logging the degradation
+    // Lock held — retry once after brief busy-wait
+    const spinUntil = Date.now() + 150;
+    while (Date.now() < spinUntil) { /* spin */ }
+    const retryHandle = acquireTaskLock(teamName, taskId);
+    if (retryHandle) {
+      try { doUpdate(); } finally { releaseTaskLock(retryHandle); }
+      return;
+    }
+    // Still locked — proceed with warning (backward compatibility, data race risk)
     if (typeof process !== 'undefined' && process.stderr) {
-      process.stderr.write(`[task-file-ops] WARN: could not acquire lock for task ${taskId}, updating without lock\n`);
+      process.stderr.write(`[task-file-ops] WARN: could not acquire lock for task ${taskId} after retry, updating without lock\n`);
     }
     doUpdate();
     return;
@@ -370,4 +378,95 @@ export function listTaskIds(teamName: string): string[] {
   } catch {
     return [];
   }
+}
+
+/**
+ * Complete a task and attach evidence in a single operation.
+ * Task must be in 'in_progress' status.
+ */
+export function completeTaskWithEvidence(
+  teamName: string,
+  taskId: string,
+  evidence: TaskEvidence
+): void {
+  const task = readTask(teamName, taskId);
+  if (!task) throw new TaskError(`Task not found: ${taskId}`, taskId, 'task_not_found');
+  if (task.status !== 'in_progress') throw new TaskError(`Task ${taskId} not in_progress`, taskId, 'invalid_state');
+  updateTask(teamName, taskId, { status: 'completed', evidence });
+}
+
+/**
+ * Set backend specs for a task (impl, review, sync).
+ */
+export function setTaskBackend(
+  teamName: string,
+  taskId: string,
+  backends: { impl?: string; review?: string; sync?: string }
+): void {
+  const task = readTask(teamName, taskId);
+  if (!task) throw new TaskError(`Task not found: ${taskId}`, taskId, 'task_not_found');
+
+  const updates: Partial<TaskFileUpdate> = {};
+  if (backends.impl !== undefined) updates.implBackend = backends.impl;
+  if (backends.review !== undefined) updates.reviewBackend = backends.review;
+  if (backends.sync !== undefined) updates.syncBackend = backends.sync;
+
+  updateTask(teamName, taskId, updates);
+}
+
+/**
+ * Get the effective backend for a task (task-level, then epic-level fallback).
+ */
+export async function getEffectiveBackend(
+  teamName: string,
+  taskId: string,
+  backendType: 'impl' | 'review' | 'sync'
+): Promise<{ spec: string | null; source: 'task' | 'epic' | null }> {
+  const task = readTask(teamName, taskId);
+  if (!task) return { spec: null, source: null };
+
+  // Task-level backend
+  const taskKey = `${backendType}Backend` as keyof TaskFile;
+  const taskVal = task[taskKey] as string | undefined;
+  if (taskVal) return { spec: taskVal, source: 'task' };
+
+  // Epic-level fallback (dynamic import to avoid circular deps)
+  if (task.epicId) {
+    try {
+      const epicOps = await import('./epic-ops.js');
+      const epic = epicOps.readEpic(teamName, task.epicId);
+      if (epic) {
+        const epicKey = `default_${backendType}`;
+        const epicVal = (epic as unknown as Record<string, unknown>)[epicKey] as string | undefined;
+        if (epicVal) return { spec: epicVal, source: 'epic' };
+      }
+    } catch { /* epic-ops not available */ }
+  }
+
+  return { spec: null, source: null };
+}
+
+/**
+ * Set task priority (lower = higher priority).
+ */
+export function setTaskPriority(teamName: string, taskId: string, priority: number): void {
+  updateTask(teamName, taskId, { priority });
+}
+
+/**
+ * List tasks sorted by priority (lowest first), then by ID.
+ */
+export function listTasksByPriority(teamName: string): TaskFile[] {
+  const ids = listTaskIds(teamName);
+  const tasks: TaskFile[] = [];
+  for (const id of ids) {
+    const task = readTask(teamName, id);
+    if (task) tasks.push(task);
+  }
+  return tasks.sort((a, b) => {
+    const pa = a.priority ?? 999;
+    const pb = b.priority ?? 999;
+    if (pa !== pb) return pa - pb;
+    return a.id.localeCompare(b.id);
+  });
 }

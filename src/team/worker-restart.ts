@@ -96,10 +96,12 @@ export function recordRestart(
   policy: RestartPolicy = DEFAULT_POLICY
 ): void {
   const statePath = getRestartStatePath(workingDirectory, teamName, workerName);
-  validateResolvedPath(statePath, workingDirectory);
 
   const dir = join(workingDirectory, '.omc', 'state', 'team-bridge', teamName);
   ensureDirWithMode(dir);
+
+  // Validate after ensureDirWithMode so safeRealpath can resolve symlinks on the existing parent
+  validateResolvedPath(statePath, workingDirectory);
 
   const existing = readRestartState(workingDirectory, teamName, workerName);
 

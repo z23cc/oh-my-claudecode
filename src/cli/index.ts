@@ -380,7 +380,7 @@ Examples:
 
     // Generate config content
     const configContent = `// Oh-My-ClaudeCode Configuration
-// See: https://github.com/Yeachan-Heo/oh-my-claudecode for documentation
+// See: https://github.com/z23cc/oh-my-claudecode for documentation
 {
   "$schema": "./sisyphus-schema.json",
 

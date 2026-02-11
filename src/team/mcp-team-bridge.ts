@@ -8,11 +8,11 @@
  */
 
 import { spawn, ChildProcess } from 'child_process';
-import { existsSync, readFileSync, openSync, readSync, closeSync } from 'fs';
+import { existsSync, openSync, readSync, closeSync } from 'fs';
 import { join } from 'path';
 import { writeFileWithMode, ensureDirWithMode } from './fs-utils.js';
-import type { BridgeConfig, TaskFile, OutboxMessage, HeartbeatData, InboxMessage } from './types.js';
-import { findNextTask, updateTask, readTask, writeTaskFailure, readTaskFailure, isTaskRetryExhausted } from './task-file-ops.js';
+import type { BridgeConfig, TaskFile, HeartbeatData, InboxMessage } from './types.js';
+import { findNextTask, updateTask, writeTaskFailure, readTaskFailure, isTaskRetryExhausted } from './task-file-ops.js';
 import {
   readNewInboxMessages, appendOutbox, rotateOutboxIfNeeded, rotateInboxIfNeeded,
   checkShutdownSignal, deleteShutdownSignal, checkDrainSignal, deleteDrainSignal
@@ -22,7 +22,7 @@ import { writeHeartbeat, deleteHeartbeat } from './heartbeat.js';
 import { killSession } from './tmux-session.js';
 import { logAuditEvent } from './audit-log.js';
 import type { AuditEvent } from './audit-log.js';
-import { getEffectivePermissions, findPermissionViolations, getDefaultPermissions } from './permissions.js';
+import { getEffectivePermissions, findPermissionViolations } from './permissions.js';
 import type { WorkerPermissions, PermissionViolation } from './permissions.js';
 
 /** Simple logger */
@@ -42,7 +42,7 @@ function audit(config: BridgeConfig, eventType: AuditEvent['eventType'], taskId?
       taskId,
       details,
     });
-  } catch { /* audit logging must never crash the bridge */ }
+  } catch (e) { process.stderr.write(`[omc] WARN: audit log write failed: ${e}\n`); }
 }
 
 /** Sleep helper */
@@ -556,7 +556,7 @@ export async function runBridge(config: BridgeConfig): Promise<void> {
 
         // --- 7. Build prompt ---
         const prompt = buildTaskPrompt(task, messages, config);
-        const promptFile = writePromptFile(config, task.id, prompt);
+        writePromptFile(config, task.id, prompt);
         const outputFile = getOutputPath(config, task.id);
 
         log(`[bridge] Executing task ${task.id}: ${task.subject}`);

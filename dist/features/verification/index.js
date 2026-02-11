@@ -69,6 +69,22 @@ export const STANDARD_CHECKS = {
         evidenceType: 'error_free',
         required: true,
         completed: false
+    },
+    CODE_REVIEW: {
+        id: 'code_review',
+        name: 'Code Review Pass',
+        description: 'Code reviewer approved with no CRITICAL/HIGH issues',
+        evidenceType: 'code_review_pass',
+        required: true,
+        completed: false
+    },
+    SECURITY_REVIEW: {
+        id: 'security_review',
+        name: 'Security Review Pass',
+        description: 'Security reviewer found no critical vulnerabilities',
+        evidenceType: 'security_review_pass',
+        required: true,
+        completed: false
     }
 };
 /**

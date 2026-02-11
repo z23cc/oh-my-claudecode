@@ -16,8 +16,9 @@ function extractJsonField(input, field, defaultValue = '') {
     const data = JSON.parse(input);
     return data[field] ?? defaultValue;
   } catch {
-    // Fallback regex extraction
-    const match = input.match(new RegExp(`"${field}"\\s*:\\s*"([^"]*)"`, 'i'));
+    // Fallback regex extraction (escape field name to prevent regex injection)
+    const escaped = field.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const match = input.match(new RegExp(`"${escaped}"\\s*:\\s*"([^"]*)"`, 'i'));
     return match ? match[1] : defaultValue;
   }
 }
@@ -124,12 +125,56 @@ async function recordToolInvocation(data, directory) {
   } catch { /* best-effort, never block tool execution */ }
 }
 
+// Check for sentinel files (PAUSE/STOP) to halt autonomous execution
+function checkSentinelFiles(directory) {
+  const sentinels = [
+    { file: '.omc/STOP', action: 'stop' },
+    { file: '.omc/PAUSE', action: 'pause' },
+    { file: 'STOP', action: 'stop' },
+    { file: 'PAUSE', action: 'pause' },
+  ];
+
+  for (const { file, action } of sentinels) {
+    const fullPath = join(directory, file);
+    if (existsSync(fullPath)) {
+      let reason = '';
+      try {
+        reason = readFileSync(fullPath, 'utf-8').trim();
+      } catch { /* ignore */ }
+      return { action, file, reason };
+    }
+  }
+  return null;
+}
+
 async function main() {
   try {
     const input = await readStdin();
 
     const toolName = extractJsonField(input, 'tool_name') || extractJsonField(input, 'toolName', 'unknown');
     const directory = extractJsonField(input, 'cwd') || extractJsonField(input, 'directory', process.cwd());
+
+    // Check sentinel files before proceeding
+    const sentinel = checkSentinelFiles(directory);
+    if (sentinel) {
+      const reasonMsg = sentinel.reason ? ` Reason: ${sentinel.reason}` : '';
+      if (sentinel.action === 'stop') {
+        console.log(JSON.stringify({
+          continue: false,
+          reason: `[OMC] STOP sentinel detected (${sentinel.file}).${reasonMsg} Remove the file to resume.`,
+        }));
+        return;
+      }
+      // For PAUSE, allow Read/Grep/Glob but block mutations
+      const readOnly = ['Read', 'Grep', 'Glob', 'Fetch', 'WebFetch', 'WebSearch'];
+      if (!readOnly.includes(toolName)) {
+        console.log(JSON.stringify({
+          continue: false,
+          reason: `[OMC] PAUSE sentinel detected (${sentinel.file}).${reasonMsg} Only read-only tools allowed. Remove the file to resume full operation.`,
+        }));
+        return;
+      }
+    }
 
     // Record Skill invocations to flow trace
     let data = {};

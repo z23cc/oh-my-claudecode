@@ -56,8 +56,9 @@ export function logAuditEvent(
 ): void {
   const logPath = getLogPath(workingDirectory, event.teamName);
   const dir = join(workingDirectory, '.omc', 'logs');
-  validateResolvedPath(logPath, workingDirectory);
   ensureDirWithMode(dir);
+  // Validate after ensureDirWithMode so safeRealpath can resolve symlinks on the existing parent
+  validateResolvedPath(logPath, workingDirectory);
   const line = JSON.stringify(event) + '\n';
   appendFileWithMode(logPath, line);
 }

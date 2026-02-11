@@ -57,8 +57,9 @@ export function recordTaskUsage(
 ): void {
   const logPath = getUsageLogPath(workingDirectory, teamName);
   const dir = join(workingDirectory, '.omc', 'logs');
-  validateResolvedPath(logPath, workingDirectory);
   ensureDirWithMode(dir);
+  // Validate after ensureDirWithMode so safeRealpath can resolve symlinks on the existing parent
+  validateResolvedPath(logPath, workingDirectory);
   appendFileWithMode(logPath, JSON.stringify(record) + '\n');
 }
 

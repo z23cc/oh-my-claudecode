@@ -95,7 +95,12 @@ export function startVerification(directory, completionClaim, originalTask, sess
         verification_attempts: 0,
         max_verification_attempts: DEFAULT_MAX_VERIFICATION_ATTEMPTS,
         requested_at: new Date().toISOString(),
-        original_task: originalTask
+        original_task: originalTask,
+        code_review_passed: false,
+        security_review_passed: false,
+        code_review_attempts: 0,
+        security_review_attempts: 0,
+        max_review_attempts: 2,
     };
     writeVerificationState(directory, state, sessionId);
     return state;
@@ -129,6 +134,26 @@ export function recordArchitectFeedback(directory, approved, feedback, sessionId
  * Generate architect verification prompt
  */
 export function getArchitectVerificationPrompt(state) {
+    const reviewSteps = [];
+    // Insert code review step if not yet passed
+    if (!state.code_review_passed) {
+        reviewSteps.push(`
+0. **Code Review Gate** (attempt ${state.code_review_attempts + 1}/${state.max_review_attempts}):
+   Spawn code-reviewer agent to review the changes.
+   Verdict must be SHIP (no CRITICAL/HIGH issues).
+   If NEEDS_WORK: fix issues and re-submit. If MAJOR_RETHINK: escalate.`);
+    }
+    // Insert security review step if not yet passed
+    if (!state.security_review_passed) {
+        reviewSteps.push(`
+0. **Security Review Gate** (attempt ${state.security_review_attempts + 1}/${state.max_review_attempts}):
+   Spawn security-reviewer agent to scan for vulnerabilities.
+   Verdict must be SHIP (no critical vulnerabilities).
+   If NEEDS_WORK: fix issues and re-submit. If MAJOR_RETHINK: escalate.`);
+    }
+    const reviewBlock = reviewSteps.length > 0
+        ? `## REVIEW GATES (before architect verification)\n${reviewSteps.join('\n')}\n\n`
+        : '';
     return `<ralph-verification>
 
 [ARCHITECT VERIFICATION REQUIRED - Attempt ${state.verification_attempts + 1}/${state.max_verification_attempts}]
@@ -143,7 +168,7 @@ ${state.completion_claim}
 
 ${state.architect_feedback ? `**Previous Architect Feedback (rejected):**\n${state.architect_feedback}\n` : ''}
 
-## MANDATORY VERIFICATION STEPS
+${reviewBlock}## MANDATORY VERIFICATION STEPS
 
 1. **Spawn Architect Agent** for verification:
    \`\`\`

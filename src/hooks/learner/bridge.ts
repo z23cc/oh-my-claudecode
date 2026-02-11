@@ -343,7 +343,8 @@ function safeRealpathSync(filePath: string): string {
  */
 function isWithinBoundary(realPath: string, boundary: string): boolean {
   const normalizedReal = realPath.replace(/\\/g, "/").replace(/\/+/g, "/");
-  const normalizedBoundary = boundary.replace(/\\/g, "/").replace(/\/+/g, "/");
+  const resolvedBoundary = safeRealpathSync(boundary);
+  const normalizedBoundary = resolvedBoundary.replace(/\\/g, "/").replace(/\/+/g, "/");
   return (
     normalizedReal === normalizedBoundary ||
     normalizedReal.startsWith(normalizedBoundary + "/")

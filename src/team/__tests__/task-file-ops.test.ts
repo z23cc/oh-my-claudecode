@@ -8,7 +8,6 @@ import {
   acquireTaskLock, releaseTaskLock, withTaskLock,
 } from '../task-file-ops.js';
 import type { TaskFile } from '../types.js';
-import type { LockHandle } from '../task-file-ops.js';
 
 const TEST_TEAM = 'test-team-ops';
 const TASKS_DIR = join(homedir(), '.claude', 'tasks', TEST_TEAM);
@@ -250,6 +249,9 @@ describe('acquireTaskLock / releaseTaskLock', () => {
     mkdirSync(TASKS_DIR, { recursive: true });
     const lockPath = join(TASKS_DIR, 'lock-test-7.lock');
     writeFileSync(lockPath, 'not valid json', { mode: 0o600 });
+    // Set mtime to 2 seconds ago to ensure ageMs > staleLockMs
+    const pastTime = new Date(Date.now() - 2000);
+    utimesSync(lockPath, pastTime, pastTime);
     // With staleLockMs=1, malformed file should be treated as stale
     const handle = acquireTaskLock(TEST_TEAM, 'lock-test-7', { staleLockMs: 1 });
     expect(handle).not.toBeNull();

@@ -6,11 +6,20 @@
  * Cross-platform: Windows, macOS, Linux
  */
 
-import { existsSync, readFileSync, writeFileSync, mkdirSync, appendFileSync } from 'fs';
+import { existsSync, readFileSync, writeFileSync, mkdirSync, appendFileSync, renameSync } from 'fs';
 import { join, dirname } from 'path';
 import { homedir } from 'os';
 import { fileURLToPath } from 'url';
 import { readStdin } from './lib/stdin.mjs';
+
+/** Atomic write: temp file + rename to prevent corruption */
+function atomicWrite(filePath, data) {
+  const dir = dirname(filePath);
+  if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
+  const tmp = `${filePath}.tmp.${process.pid}`;
+  writeFileSync(tmp, data, { mode: 0o600 });
+  renameSync(tmp, filePath);
+}
 
 // Get the directory of this script to resolve the dist module
 const __filename = fileURLToPath(import.meta.url);
@@ -49,10 +58,10 @@ function loadStats() {
   return { sessions: {} };
 }
 
-// Save session statistics
+// Save session statistics (atomic)
 function saveStats(stats) {
   try {
-    writeFileSync(STATE_FILE, JSON.stringify(stats, null, 2));
+    atomicWrite(STATE_FILE, JSON.stringify(stats, null, 2));
   } catch {}
 }
 
@@ -79,17 +88,17 @@ function updateStats(toolName, sessionId) {
   return session.tool_counts[toolName];
 }
 
-// Read bash history config (default: enabled)
+// Read bash history config (default: disabled for safety — opt-in only)
 function getBashHistoryConfig() {
   try {
     const configPath = join(homedir(), '.claude', '.omc-config.json');
     if (existsSync(configPath)) {
       const config = JSON.parse(readFileSync(configPath, 'utf-8'));
-      if (config.bashHistory === false) return false;
-      if (typeof config.bashHistory === 'object' && config.bashHistory.enabled === false) return false;
+      if (config.bashHistory === true) return true;
+      if (typeof config.bashHistory === 'object' && config.bashHistory.enabled === true) return true;
     }
   } catch {}
-  return true; // Default: enabled
+  return false; // Default: disabled (opt-in via .omc-config.json bashHistory: true)
 }
 
 // Append command to ~/.bash_history
@@ -111,19 +120,19 @@ function appendToBashHistory(command) {
   }
 }
 
-// Detect failures in Bash output
+// Detect failures in Bash output (precise patterns to avoid false positives)
 function detectBashFailure(output) {
   const errorPatterns = [
-    /error:/i,
-    /failed/i,
-    /cannot/i,
-    /permission denied/i,
-    /command not found/i,
-    /no such file/i,
-    /exit code: [1-9]/i,
-    /exit status [1-9]/i,
-    /fatal:/i,
-    /abort/i,
+    /\bERROR:/,                       // Uppercase ERROR: (not "0 errors")
+    /\bfailed\b.*\b(to|with)\b/i,    // "failed to" / "failed with" (not "0 failed")
+    /\bpermission denied\b/i,
+    /\bcommand not found\b/i,
+    /\bno such file or directory\b/i,
+    /\bexit code: [1-9]\d*\b/i,
+    /\bexit status [1-9]\d*\b/i,
+    /\bfatal:/i,
+    /\baborted\b/i,
+    /\bsegmentation fault\b/i,
   ];
 
   return errorPatterns.some(pattern => pattern.test(output));
@@ -298,6 +307,61 @@ function generateMessage(toolName, toolOutput, sessionId, toolCount, directory) 
   return message;
 }
 
+/**
+ * Track consecutive failures and create PAUSE sentinel after threshold.
+ * Prevents runaway autonomous loops from burning tokens on repeated errors.
+ */
+const FAILURE_THRESHOLD = 5;
+
+function trackFailures(toolName, toolOutput, directory, sessionId) {
+  const stateDir = join(directory, '.omc', 'state');
+  const statePath = join(stateDir, 'failure-tracker.json');
+
+  let state = { consecutive: 0, lastTool: '', lastSession: '' };
+  try {
+    if (existsSync(statePath)) {
+      state = JSON.parse(readFileSync(statePath, 'utf-8'));
+    }
+  } catch { /* ignore */ }
+
+  // Detect failure patterns (precise to avoid false positives like "0 errors")
+  const isFailure =
+    /\b(ERROR:|FAIL:|FAILED|exception|ExitCode: [1-9]|fatal:)\b/i.test(toolOutput) &&
+    (toolName === 'Bash' || toolName === 'Task' || toolName === 'TaskOutput');
+
+  if (isFailure) {
+    state.consecutive++;
+    state.lastTool = toolName;
+    state.lastSession = sessionId;
+  } else {
+    state.consecutive = 0;
+  }
+
+  // Auto-PAUSE after threshold
+  if (state.consecutive >= FAILURE_THRESHOLD) {
+    const pausePath = join(directory, '.omc', 'PAUSE');
+    if (!existsSync(pausePath)) {
+      try {
+        if (!existsSync(join(directory, '.omc'))) {
+          mkdirSync(join(directory, '.omc'), { recursive: true });
+        }
+        atomicWrite(
+          pausePath,
+          `Auto-paused: ${state.consecutive} consecutive tool failures detected. Last: ${toolName}. Remove this file to resume.`
+        );
+      } catch { /* ignore */ }
+    }
+    state.consecutive = 0;
+  }
+
+  try {
+    if (!existsSync(stateDir)) {
+      mkdirSync(stateDir, { recursive: true });
+    }
+    atomicWrite(statePath, JSON.stringify(state));
+  } catch { /* ignore */ }
+}
+
 async function main() {
   try {
     const input = await readStdin();
@@ -311,6 +375,9 @@ async function main() {
 
     // Update session statistics
     const toolCount = updateStats(toolName, sessionId);
+
+    // Track consecutive failures and auto-PAUSE after threshold
+    trackFailures(toolName, toolOutput, directory, sessionId);
 
     // Append Bash commands to ~/.bash_history for terminal recall
     if ((toolName === 'Bash' || toolName === 'bash') && getBashHistoryConfig()) {

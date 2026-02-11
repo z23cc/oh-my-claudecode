@@ -14,6 +14,12 @@ validate_worktree_path() {
         return 1
     fi
 
+    # Refuse if root is a symlink
+    if [[ -L "$worktree_root" ]]; then
+        echo "error|Worktree root is a symlink; refusing for safety" >&2
+        return 1
+    fi
+
     # Resolve to absolute paths for comparison
     local abs_path abs_root
     abs_path=$(cd "$path" 2>/dev/null && pwd) || return 1
@@ -27,6 +33,69 @@ validate_worktree_path() {
     return 0
 }
 
+# Validate each path segment for symlink traversal prevention
+# Usage: assert_safe_worktree_path <relative_path>
+assert_safe_worktree_path() {
+    local rel="$1"
+    local worktree_root
+    worktree_root=$(psm_get_worktree_root 2>/dev/null) || return 1
+    local path="$worktree_root"
+    local IFS='/'
+    read -r -a parts <<< "$rel"
+    for part in "${parts[@]}"; do
+        [[ -n "$part" ]] || continue
+        path="$path/$part"
+        if [[ -L "$path" ]]; then
+            echo "error|Refusing symlink path: $path" >&2
+            return 1
+        fi
+        if [[ -e "$path" && ! -d "$path" ]]; then
+            echo "error|Path exists but is not a directory: $path" >&2
+            return 1
+        fi
+    done
+    return 0
+}
+
+# Validate worktree/branch name is safe
+# Usage: validate_worktree_name <name>
+validate_worktree_name() {
+    local name="$1"
+    if [[ -z "$name" ]]; then
+        echo "error|Missing worktree name" >&2
+        return 1
+    fi
+    if [[ "$name" == -* ]]; then
+        echo "error|Invalid name (cannot start with '-')" >&2
+        return 1
+    fi
+    if [[ "$name" == *".."* ]]; then
+        echo "error|Invalid name (cannot contain '..')" >&2
+        return 1
+    fi
+    if ! git check-ref-format --branch "$name" >/dev/null 2>&1; then
+        echo "error|Invalid branch name: $name" >&2
+        return 1
+    fi
+    return 0
+}
+
+# Safely copy .env* files to target without overwriting existing ones
+# Usage: psm_copy_env_safe <source_dir> <target_dir>
+psm_copy_env_safe() {
+    local source_dir="$1"
+    local target_dir="$2"
+    [[ -d "$target_dir" ]] || return 1
+    [[ ! -L "$target_dir" ]] || { echo "error|Target is a symlink; refusing" >&2; return 1; }
+    shopt -s nullglob
+    for f in "$source_dir"/.env*; do
+        [[ -f "$f" ]] || continue
+        [[ -L "$f" ]] && continue  # Skip symlinked env files
+        cp -n "$f" "$target_dir/" 2>/dev/null || true  # -n = no overwrite
+    done
+    shopt -u nullglob
+}
+
 # Create a worktree for PR review
 # Usage: psm_create_pr_worktree <local_repo> <alias> <pr_number> <pr_branch>
 psm_create_pr_worktree() {
@@ -37,6 +106,9 @@ psm_create_pr_worktree() {
 
     local worktree_root=$(psm_get_worktree_root)
     local worktree_path="${worktree_root}/${alias}/pr-${pr_number}"
+
+    # Safety: validate path segments for symlink traversal
+    assert_safe_worktree_path "${alias}/pr-${pr_number}" || return 1
 
     # Check if worktree already exists
     if [[ -d "$worktree_path" ]]; then
@@ -73,9 +145,15 @@ psm_create_issue_worktree() {
     local slug="$4"
     local base_branch="${5:-main}"
 
+    # Safety: validate name and path
+    validate_worktree_name "fix/${issue_number}-${slug}" || return 1
+
     local worktree_root=$(psm_get_worktree_root)
     local worktree_path="${worktree_root}/${alias}/issue-${issue_number}"
     local branch_name="fix/${issue_number}-${slug}"
+
+    # Safety: validate path segments for symlink traversal
+    assert_safe_worktree_path "${alias}/issue-${issue_number}" || return 1
 
     # Check if worktree already exists
     if [[ -d "$worktree_path" ]]; then
@@ -119,8 +197,15 @@ psm_create_feature_worktree() {
 
     local worktree_root=$(psm_get_worktree_root)
     local safe_name=$(psm_sanitize "$feature_name")
+
+    # Safety: validate name and path
+    validate_worktree_name "feature/${safe_name}" || return 1
+
     local worktree_path="${worktree_root}/${alias}/feat-${safe_name}"
     local branch_name="feature/${safe_name}"
+
+    # Safety: validate path segments for symlink traversal
+    assert_safe_worktree_path "${alias}/feat-${safe_name}" || return 1
 
     # Check if worktree already exists
     if [[ -d "$worktree_path" ]]; then

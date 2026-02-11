@@ -162,7 +162,7 @@ ls | sort -V | head -n -1 | xargs rm -rf
 ### Fix: Missing/Outdated CLAUDE.md
 Fetch latest from GitHub and write to `~/.claude/CLAUDE.md`:
 ```
-WebFetch(url: "https://raw.githubusercontent.com/Yeachan-Heo/oh-my-claudecode/main/docs/CLAUDE.md", prompt: "Return the complete raw markdown content exactly as-is")
+WebFetch(url: "https://raw.githubusercontent.com/z23cc/oh-my-claudecode/main/docs/CLAUDE.md", prompt: "Return the complete raw markdown content exactly as-is")
 ```
 
 ### Fix: Legacy Curl-Installed Content

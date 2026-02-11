@@ -7,12 +7,12 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/keyword-detector.mjs\"",
+            "command": "node \"${DROID_PLUGIN_ROOT:-${CLAUDE_PLUGIN_ROOT}}/scripts/keyword-detector.mjs\"",
             "timeout": 5
           },
           {
             "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/skill-injector.mjs\"",
+            "command": "node \"${DROID_PLUGIN_ROOT:-${CLAUDE_PLUGIN_ROOT}}/scripts/skill-injector.mjs\"",
             "timeout": 3
           }
         ]
@@ -24,12 +24,12 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/session-start.mjs\"",
+            "command": "node \"${DROID_PLUGIN_ROOT:-${CLAUDE_PLUGIN_ROOT}}/scripts/session-start.mjs\"",
             "timeout": 5
           },
           {
             "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/project-memory-session.mjs\"",
+            "command": "node \"${DROID_PLUGIN_ROOT:-${CLAUDE_PLUGIN_ROOT}}/scripts/project-memory-session.mjs\"",
             "timeout": 5
           }
         ]
@@ -39,7 +39,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/setup-init.mjs\"",
+            "command": "node \"${DROID_PLUGIN_ROOT:-${CLAUDE_PLUGIN_ROOT}}/scripts/setup-init.mjs\"",
             "timeout": 30
           }
         ]
@@ -49,7 +49,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/setup-maintenance.mjs\"",
+            "command": "node \"${DROID_PLUGIN_ROOT:-${CLAUDE_PLUGIN_ROOT}}/scripts/setup-maintenance.mjs\"",
             "timeout": 60
           }
         ]
@@ -61,7 +61,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/pre-tool-enforcer.mjs\"",
+            "command": "node \"${DROID_PLUGIN_ROOT:-${CLAUDE_PLUGIN_ROOT}}/scripts/pre-tool-enforcer.mjs\"",
             "timeout": 3
           }
         ]
@@ -69,11 +69,11 @@
     ],
     "PermissionRequest": [
       {
-        "matcher": "Bash",
+        "matcher": "Bash|Execute",
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/permission-handler.mjs\"",
+            "command": "node \"${DROID_PLUGIN_ROOT:-${CLAUDE_PLUGIN_ROOT}}/scripts/permission-handler.mjs\"",
             "timeout": 5
           }
         ]
@@ -85,12 +85,17 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/post-tool-verifier.mjs\"",
+            "command": "node \"${DROID_PLUGIN_ROOT:-${CLAUDE_PLUGIN_ROOT}}/scripts/post-tool-verifier.mjs\"",
             "timeout": 3
           },
           {
             "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/project-memory-posttool.mjs\"",
+            "command": "node \"${DROID_PLUGIN_ROOT:-${CLAUDE_PLUGIN_ROOT}}/scripts/project-memory-posttool.mjs\"",
+            "timeout": 3
+          },
+          {
+            "type": "command",
+            "command": "node \"${DROID_PLUGIN_ROOT:-${CLAUDE_PLUGIN_ROOT}}/scripts/ralph-guard.mjs\"",
             "timeout": 3
           }
         ]
@@ -102,7 +107,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/subagent-tracker.mjs\" start",
+            "command": "node \"${DROID_PLUGIN_ROOT:-${CLAUDE_PLUGIN_ROOT}}/scripts/subagent-tracker.mjs\" start",
             "timeout": 3
           }
         ]
@@ -114,7 +119,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/subagent-tracker.mjs\" stop",
+            "command": "node \"${DROID_PLUGIN_ROOT:-${CLAUDE_PLUGIN_ROOT}}/scripts/subagent-tracker.mjs\" stop",
             "timeout": 5
           }
         ]
@@ -126,12 +131,12 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/pre-compact.mjs\"",
+            "command": "node \"${DROID_PLUGIN_ROOT:-${CLAUDE_PLUGIN_ROOT}}/scripts/pre-compact.mjs\"",
             "timeout": 10
           },
           {
             "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/project-memory-precompact.mjs\"",
+            "command": "node \"${DROID_PLUGIN_ROOT:-${CLAUDE_PLUGIN_ROOT}}/scripts/project-memory-precompact.mjs\"",
             "timeout": 5
           }
         ]
@@ -143,7 +148,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/persistent-mode.cjs\"",
+            "command": "node \"${DROID_PLUGIN_ROOT:-${CLAUDE_PLUGIN_ROOT}}/scripts/persistent-mode.cjs\"",
             "timeout": 5
           }
         ]
@@ -155,7 +160,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"${CLAUDE_PLUGIN_ROOT}/scripts/session-end.mjs\"",
+            "command": "node \"${DROID_PLUGIN_ROOT:-${CLAUDE_PLUGIN_ROOT}}/scripts/session-end.mjs\"",
             "timeout": 10
           }
         ]

@@ -48,7 +48,7 @@ if [[ ! -f ~/.psm/projects.json ]]; then
 {
   "aliases": {
     "omc": {
-      "repo": "Yeachan-Heo/oh-my-claudecode",
+      "repo": "z23cc/oh-my-claudecode",
       "local": "~/Workspace/oh-my-claudecode",
       "default_base": "main"
     }

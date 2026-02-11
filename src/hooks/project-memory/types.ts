@@ -69,6 +69,10 @@ export interface CustomNote {
   source: 'manual' | 'learned';
   category: string;
   content: string;
+  noteType?: 'pitfall' | 'convention' | 'decision' | 'general';
+  sourceTask?: string;
+  sourceVerdict?: string;
+  rationale?: string;
 }
 
 export interface ConfigPattern {

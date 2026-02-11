@@ -32,6 +32,7 @@ Jumping into code without understanding requirements leads to rework, scope cree
 - Gather codebase facts via `explore` agent before asking the user about them
 - Plans must meet quality standards: 80%+ claims cite file/line, 90%+ criteria are testable
 - Consensus mode requires explicit user approval before proceeding to implementation
+- **No implementation code in plans**: Plans describe WHAT to change (files, functions, approach) but NEVER contain actual code. Code belongs in the implementation phase only. Plans should reference file paths, function signatures, and architectural patterns — not paste code blocks.
 </Execution_Policy>
 
 <Steps>

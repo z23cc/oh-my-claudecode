@@ -1,4 +1,4 @@
-import type { TaskFile, TaskFileUpdate, TaskFailureSidecar } from './types.js';
+import type { TaskFile, TaskFileUpdate, TaskFailureSidecar, TaskEvidence } from './types.js';
 /** Handle returned by acquireTaskLock; pass to releaseTaskLock. */
 export interface LockHandle {
     fd: number;
@@ -73,4 +73,9 @@ export declare const DEFAULT_MAX_TASK_RETRIES = 5;
 export declare function isTaskRetryExhausted(teamName: string, taskId: string, maxRetries?: number): boolean;
 /** List all task IDs in a team directory, sorted ascending */
 export declare function listTaskIds(teamName: string): string[];
+/**
+ * Complete a task and attach evidence in a single operation.
+ * Task must be in 'in_progress' status.
+ */
+export declare function completeTaskWithEvidence(teamName: string, taskId: string, evidence: TaskEvidence): void;
 //# sourceMappingURL=task-file-ops.d.ts.map

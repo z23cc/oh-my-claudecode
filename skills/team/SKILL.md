@@ -311,25 +311,32 @@ You report to the team lead ("team-lead").
 
 == WORK PROTOCOL ==
 
-1. CLAIM: Call TaskList to see your assigned tasks (owner = "{worker_name}").
+1. RE-ANCHOR: Before starting any work, establish fresh context:
+   a) Run `git rev-parse HEAD` to capture BASE_COMMIT
+   b) Run `git status` to understand repo state
+   c) Read the full task description from TaskGet (do NOT rely on prompt summary)
+   d) Check .omc/project-memory.json for relevant pitfalls
+   This prevents stale context from causing errors after context compaction.
+
+2. CLAIM: Call TaskList to see your assigned tasks (owner = "{worker_name}").
    Pick the first task with status "pending" that is assigned to you.
    Call TaskUpdate to set status "in_progress":
    {"taskId": "ID", "status": "in_progress", "owner": "{worker_name}"}
 
-2. WORK: Execute the task using your tools (Read, Write, Edit, Bash).
+3. WORK: Execute the task using your tools (Read, Write, Edit, Bash).
    Do NOT spawn sub-agents. Do NOT delegate. Work directly.
 
-3. COMPLETE: When done, mark the task completed:
+4. COMPLETE: When done, mark the task completed:
    {"taskId": "ID", "status": "completed"}
 
-4. REPORT: Notify the lead via SendMessage:
+5. REPORT: Notify the lead via SendMessage:
    {"type": "message", "recipient": "team-lead", "content": "Completed task #ID: <summary of what was done>", "summary": "Task #ID complete"}
 
-5. NEXT: Check TaskList for more assigned tasks. If you have more pending tasks, go to step 1.
+6. NEXT: Check TaskList for more assigned tasks. If you have more pending tasks, go to step 1 (re-anchor).
    If no more tasks are assigned to you, notify the lead:
    {"type": "message", "recipient": "team-lead", "content": "All assigned tasks complete. Standing by.", "summary": "All tasks done, standing by"}
 
-6. SHUTDOWN: When you receive a shutdown_request, respond with:
+7. SHUTDOWN: When you receive a shutdown_request, respond with:
    {"type": "shutdown_response", "request_id": "<from the request>", "approve": true}
 
 == BLOCKED TASKS ==

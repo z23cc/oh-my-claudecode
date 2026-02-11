@@ -4,9 +4,9 @@ English | [한국어](README.ko.md) | [中文](README.zh.md) | [日本語](READM
 
 [![npm version](https://img.shields.io/npm/v/oh-my-claude-sisyphus?color=cb3837)](https://www.npmjs.com/package/oh-my-claude-sisyphus)
 [![npm downloads](https://img.shields.io/npm/dm/oh-my-claude-sisyphus?color=blue)](https://www.npmjs.com/package/oh-my-claude-sisyphus)
-[![GitHub stars](https://img.shields.io/github/stars/Yeachan-Heo/oh-my-claudecode?style=flat&color=yellow)](https://github.com/Yeachan-Heo/oh-my-claudecode/stargazers)
+[![GitHub stars](https://img.shields.io/github/stars/z23cc/oh-my-claudecode?style=flat&color=yellow)](https://github.com/z23cc/oh-my-claudecode/stargazers)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
-[![Sponsor](https://img.shields.io/badge/Sponsor-❤️-red?style=flat&logo=github)](https://github.com/sponsors/Yeachan-Heo)
+[![Sponsor](https://img.shields.io/badge/Sponsor-❤️-red?style=flat&logo=github)](https://github.com/sponsors/z23cc)
 
 **Multi-agent orchestration for Claude Code. Zero learning curve.**
 
@@ -20,7 +20,7 @@ English | [한국어](README.ko.md) | [中文](README.zh.md) | [日本語](READM
 
 **Step 1: Install**
 ```bash
-/plugin marketplace add https://github.com/Yeachan-Heo/oh-my-claudecode
+/plugin marketplace add https://github.com/z23cc/oh-my-claudecode
 /plugin install oh-my-claudecode
 ```
 
@@ -177,6 +177,21 @@ omc wait --stop   # Disable daemon
 
 ---
 
+## Security & Reliability
+
+OMC is built with defense-in-depth security across the entire stack:
+
+- **Atomic file locking** - `O_CREAT|O_EXCL` kernel-level locks prevent task race conditions
+- **Path traversal protection** - All file operations validated against directory boundaries with symlink-aware resolution
+- **Shell injection prevention** - `execFileSync` with argument arrays instead of shell interpolation
+- **Input sanitization** - Regex validation on all IDs, commit refs, and file paths before use
+- **TOCTOU mitigation** - Atomic write-rename pattern for all JSON state files
+- **ReDoS protection** - Bounded regex patterns with safe alternation
+- **Graceful degradation** - All optional operations (git evidence, heartbeat, audit) fail safely with diagnostic logging
+- **macOS compatibility** - Full symlink resolution for `/var`→`/private/var`, `/tmp`→`/private/tmp` paths
+
+---
+
 ## Requirements
 
 - [Claude Code](https://docs.anthropic.com/claude-code) CLI
@@ -211,13 +226,13 @@ MIT
 
 ## Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=Yeachan-Heo/oh-my-claudecode&type=date&legend=top-left)](https://www.star-history.com/#Yeachan-Heo/oh-my-claudecode&type=date&legend=top-left)
+[![Star History Chart](https://api.star-history.com/svg?repos=z23cc/oh-my-claudecode&type=date&legend=top-left)](https://www.star-history.com/#z23cc/oh-my-claudecode&type=date&legend=top-left)
 
 ## 💖 Support This Project
 
 If Oh-My-ClaudeCode helps your workflow, consider sponsoring:
 
-[![Sponsor on GitHub](https://img.shields.io/badge/Sponsor-❤️-red?style=for-the-badge&logo=github)](https://github.com/sponsors/Yeachan-Heo)
+[![Sponsor on GitHub](https://img.shields.io/badge/Sponsor-❤️-red?style=for-the-badge&logo=github)](https://github.com/sponsors/z23cc)
 
 ### Why sponsor?
 

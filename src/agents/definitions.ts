@@ -258,6 +258,194 @@ export const gitMasterAgent: AgentConfig = {
 };
 
 // ============================================================
+// COORDINATION & SCOUT AGENTS
+// ============================================================
+
+/**
+ * Plan-Sync Agent - Cross-Task Spec Drift Detection (Sonnet)
+ */
+export const planSyncAgent: AgentConfig = {
+  name: 'plan-sync',
+  description: 'Synchronize downstream task specs after implementation drift (Sonnet).',
+  prompt: loadAgentPrompt('plan-sync'),
+  model: 'sonnet',
+  defaultModel: 'sonnet',
+  disallowedTools: ['Write', 'Edit']
+};
+
+/**
+ * Prime-Scout Agent - Fast Pillar Assessment (Haiku)
+ */
+export const primeScoutAgent: AgentConfig = {
+  name: 'prime-scout',
+  description: 'Fast read-only pillar assessment scout for prime readiness checks (Haiku).',
+  prompt: loadAgentPrompt('prime-scout'),
+  model: 'haiku',
+  defaultModel: 'haiku',
+  disallowedTools: ['Write', 'Edit']
+};
+
+/**
+ * GitHub-Scout Agent - GitHub Code Pattern Search (Sonnet)
+ */
+export const githubScoutAgent: AgentConfig = {
+  name: 'github-scout',
+  description: 'Search GitHub repos for code patterns, implementations, and quality-rated examples (Sonnet).',
+  prompt: loadAgentPrompt('github-scout'),
+  model: 'sonnet',
+  defaultModel: 'sonnet',
+  disallowedTools: ['Write', 'Edit']
+};
+
+// ============================================================
+// PRIME ASSESSMENT SCOUTS (Read-Only)
+// ============================================================
+
+export const buildScoutAgent: AgentConfig = {
+  name: 'build-scout',
+  description: 'Scan build system, scripts, and CI configuration (Haiku).',
+  prompt: loadAgentPrompt('build-scout'),
+  model: 'haiku',
+  defaultModel: 'haiku',
+  disallowedTools: ['Write', 'Edit', 'Task']
+};
+
+export const claudeMdScoutAgent: AgentConfig = {
+  name: 'claude-md-scout',
+  description: 'Analyze CLAUDE.md and AGENTS.md quality and completeness (Haiku).',
+  prompt: loadAgentPrompt('claude-md-scout'),
+  model: 'haiku',
+  defaultModel: 'haiku',
+  disallowedTools: ['Write', 'Edit', 'Task']
+};
+
+export const envScoutAgent: AgentConfig = {
+  name: 'env-scout',
+  description: 'Scan environment setup, .env templates, Docker, devcontainer config (Haiku).',
+  prompt: loadAgentPrompt('env-scout'),
+  model: 'haiku',
+  defaultModel: 'haiku',
+  disallowedTools: ['Write', 'Edit', 'Task']
+};
+
+export const testingScoutAgent: AgentConfig = {
+  name: 'testing-scout',
+  description: 'Analyze test framework, coverage configuration, and test commands (Haiku).',
+  prompt: loadAgentPrompt('testing-scout'),
+  model: 'haiku',
+  defaultModel: 'haiku',
+  disallowedTools: ['Write', 'Edit', 'Task']
+};
+
+export const toolingScoutAgent: AgentConfig = {
+  name: 'tooling-scout',
+  description: 'Scan linting, formatting, type checking, pre-commit config (Haiku).',
+  prompt: loadAgentPrompt('tooling-scout'),
+  model: 'haiku',
+  defaultModel: 'haiku',
+  disallowedTools: ['Write', 'Edit', 'Task']
+};
+
+export const securityScoutAgent: AgentConfig = {
+  name: 'security-scout',
+  description: 'Scan security config, GitHub settings, CODEOWNERS, dependency updates (Haiku).',
+  prompt: loadAgentPrompt('security-scout'),
+  model: 'haiku',
+  defaultModel: 'haiku',
+  disallowedTools: ['Write', 'Edit', 'Task']
+};
+
+export const workflowScoutAgent: AgentConfig = {
+  name: 'workflow-scout',
+  description: 'Scan CI/CD, PR templates, issue templates, workflow automation (Haiku).',
+  prompt: loadAgentPrompt('workflow-scout'),
+  model: 'haiku',
+  defaultModel: 'haiku',
+  disallowedTools: ['Write', 'Edit', 'Task']
+};
+
+export const observabilityScoutAgent: AgentConfig = {
+  name: 'observability-scout',
+  description: 'Scan logging, tracing, metrics, health endpoints (Haiku).',
+  prompt: loadAgentPrompt('observability-scout'),
+  model: 'haiku',
+  defaultModel: 'haiku',
+  disallowedTools: ['Write', 'Edit', 'Task']
+};
+
+export const docsScoutAgent: AgentConfig = {
+  name: 'docs-scout',
+  description: 'Find most relevant framework/library docs for requested change (Opus).',
+  prompt: loadAgentPrompt('docs-scout'),
+  model: 'opus',
+  defaultModel: 'opus',
+  disallowedTools: ['Write', 'Edit', 'Task']
+};
+
+export const docsGapScoutAgent: AgentConfig = {
+  name: 'docs-gap-scout',
+  description: 'Identify documentation needing updates based on planned changes (Haiku).',
+  prompt: loadAgentPrompt('docs-gap-scout'),
+  model: 'haiku',
+  defaultModel: 'haiku',
+  disallowedTools: ['Write', 'Edit', 'Task']
+};
+
+export const practiceScoutAgent: AgentConfig = {
+  name: 'practice-scout',
+  description: 'Gather modern best practices and pitfalls for requested change (Opus).',
+  prompt: loadAgentPrompt('practice-scout'),
+  model: 'opus',
+  defaultModel: 'opus',
+  disallowedTools: ['Write', 'Edit', 'Task']
+};
+
+export const repoScoutAgent: AgentConfig = {
+  name: 'repo-scout',
+  description: 'Scan repo for existing patterns, conventions, and related code paths (Opus).',
+  prompt: loadAgentPrompt('repo-scout'),
+  model: 'opus',
+  defaultModel: 'opus',
+  disallowedTools: ['Write', 'Edit', 'Task']
+};
+
+export const epicScoutAgent: AgentConfig = {
+  name: 'epic-scout',
+  description: 'Scan existing epics for dependencies and relationships (Haiku).',
+  prompt: loadAgentPrompt('epic-scout'),
+  model: 'haiku',
+  defaultModel: 'haiku',
+  disallowedTools: ['Write', 'Edit', 'Task']
+};
+
+export const flowGapAnalystAgent: AgentConfig = {
+  name: 'flow-gap-analyst',
+  description: 'Map user flows, edge cases, and missing requirements from brief specs (Opus).',
+  prompt: loadAgentPrompt('flow-gap-analyst'),
+  model: 'opus',
+  defaultModel: 'opus',
+  disallowedTools: ['Write', 'Edit', 'Task']
+};
+
+export const qualityAuditorAgent: AgentConfig = {
+  name: 'quality-auditor',
+  description: 'Review recent changes for correctness, simplicity, security, test coverage (Opus).',
+  prompt: loadAgentPrompt('quality-auditor'),
+  model: 'opus',
+  defaultModel: 'opus',
+  disallowedTools: ['Write', 'Edit', 'Task']
+};
+
+export const contextScoutAgent: AgentConfig = {
+  name: 'context-scout',
+  description: 'Token-efficient codebase exploration using RepoPrompt codemaps and slices (Opus).',
+  prompt: loadAgentPrompt('context-scout'),
+  model: 'opus',
+  defaultModel: 'opus',
+  disallowedTools: ['Write', 'Edit', 'Task']
+};
+
+// ============================================================
 // DEPRECATED ALIASES (Backward Compatibility)
 // ============================================================
 
@@ -346,10 +534,33 @@ export function getAgentDefinitions(overrides?: Partial<Record<string, Partial<A
     'product-analyst': productAnalystAgent,
 
     // ============================================================
-    // COORDINATION
+    // COORDINATION & SCOUTS
     // ============================================================
     critic: criticAgent,
     vision: visionAgent,
+    'plan-sync': planSyncAgent,
+    'prime-scout': primeScoutAgent,
+    'github-scout': githubScoutAgent,
+
+    // ============================================================
+    // PRIME ASSESSMENT SCOUTS
+    // ============================================================
+    'build-scout': buildScoutAgent,
+    'claude-md-scout': claudeMdScoutAgent,
+    'env-scout': envScoutAgent,
+    'testing-scout': testingScoutAgent,
+    'tooling-scout': toolingScoutAgent,
+    'security-scout': securityScoutAgent,
+    'workflow-scout': workflowScoutAgent,
+    'observability-scout': observabilityScoutAgent,
+    'docs-scout': docsScoutAgent,
+    'docs-gap-scout': docsGapScoutAgent,
+    'practice-scout': practiceScoutAgent,
+    'repo-scout': repoScoutAgent,
+    'epic-scout': epicScoutAgent,
+    'flow-gap-analyst': flowGapAnalystAgent,
+    'quality-auditor': qualityAuditorAgent,
+    'context-scout': contextScoutAgent,
 
     // ============================================================
     // BACKWARD COMPATIBILITY (Deprecated)
@@ -392,7 +603,7 @@ You are BOUND to your task list. You do not stop. You do not quit. You do not ta
 ## Your Core Duty
 You coordinate specialized subagents to accomplish complex software engineering tasks. Abandoning work mid-task is not an option. If you stop without completing ALL tasks, you have failed.
 
-## Available Subagents (28 Agents)
+## Available Subagents (47 Agents)
 
 ### Build/Analysis Lane
 - **explore**: Internal codebase discovery (haiku) — fast pattern matching
@@ -429,9 +640,30 @@ You coordinate specialized subagents to accomplish complex software engineering 
 - **information-architect**: Info architecture (sonnet) — taxonomy, navigation, findability
 - **product-analyst**: Product analytics (sonnet) — metrics, funnels, experiment design
 
-### Coordination
+### Coordination & Scouts
 - **critic**: Plan review (opus) — critical challenge and evaluation
 - **vision**: Visual analysis (sonnet) — images, screenshots, diagrams
+- **plan-sync**: Spec drift detection (sonnet) — cross-task synchronization
+- **prime-scout**: Pillar assessment (haiku) — fast readiness checks
+- **github-scout**: Code search (sonnet) — GitHub pattern discovery
+
+### Prime Assessment Scouts (Read-Only)
+- **build-scout**: Build system scan (haiku) — tools, CI, monorepo detection
+- **claude-md-scout**: CLAUDE.md analysis (haiku) — quality and completeness
+- **env-scout**: Environment scan (haiku) — .env, Docker, setup
+- **testing-scout**: Test infrastructure (haiku) — framework, coverage, CI
+- **tooling-scout**: Quality tooling (haiku) — lint, format, type check
+- **security-scout**: Security config (haiku) — branch protection, secrets
+- **workflow-scout**: CI/CD scan (haiku) — pipelines, templates, automation
+- **observability-scout**: Monitoring scan (haiku) — logging, tracing, metrics
+- **docs-scout**: Framework docs (opus) — version-specific API references
+- **docs-gap-scout**: Doc gap analysis (haiku) — identify stale documentation
+- **practice-scout**: Best practices (opus) — modern patterns and pitfalls
+- **repo-scout**: Repo patterns (opus) — conventions and reusable code
+- **epic-scout**: Epic dependencies (haiku) — cross-epic relationships
+- **flow-gap-analyst**: UX gap analysis (opus) — flows, edge cases, requirements
+- **quality-auditor**: Change audit (opus) — correctness, security, coverage
+- **context-scout**: Token-efficient exploration (opus) — RepoPrompt integration
 
 ## Orchestration Principles
 1. **Delegate Aggressively**: Fire off subagents for specialized tasks - don't do everything yourself

@@ -18,7 +18,7 @@ import { TaskTool } from '../hooks/beads-context/types.js';
 import { install as installSisyphus, HOOKS_DIR, isProjectScopedPlugin, isRunningAsPlugin } from '../installer/index.js';
 
 /** GitHub repository information */
-export const REPO_OWNER = 'Yeachan-Heo';
+export const REPO_OWNER = 'z23cc';
 export const REPO_NAME = 'oh-my-claudecode';
 export const GITHUB_API_URL = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}`;
 export const GITHUB_RAW_URL = `https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}`;

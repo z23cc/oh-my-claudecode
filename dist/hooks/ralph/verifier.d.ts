@@ -28,6 +28,16 @@ export interface VerificationState {
     requested_at: string;
     /** Original ralph task */
     original_task: string;
+    /** Whether code review has passed */
+    code_review_passed?: boolean;
+    /** Whether security review has passed */
+    security_review_passed?: boolean;
+    /** Number of code review attempts */
+    code_review_attempts: number;
+    /** Number of security review attempts */
+    security_review_attempts: number;
+    /** Max review attempts before skipping */
+    max_review_attempts: number;
 }
 /**
  * Read verification state

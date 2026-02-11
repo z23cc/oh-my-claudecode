@@ -68,6 +68,22 @@ export declare const STANDARD_CHECKS: {
         required: boolean;
         completed: boolean;
     };
+    CODE_REVIEW: {
+        id: string;
+        name: string;
+        description: string;
+        evidenceType: VerificationEvidenceType;
+        required: boolean;
+        completed: boolean;
+    };
+    SECURITY_REVIEW: {
+        id: string;
+        name: string;
+        description: string;
+        evidenceType: VerificationEvidenceType;
+        required: boolean;
+        completed: boolean;
+    };
 };
 /**
  * Create a verification protocol

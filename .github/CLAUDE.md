@@ -15,7 +15,7 @@ oh-my-claudecode is a Claude Code plugin that provides multi-agent orchestration
 
 ### Installation
 ```bash
-/plugin marketplace add Yeachan-Heo/oh-my-claudecode
+/plugin marketplace add z23cc/oh-my-claudecode
 ```
 
 ## Code Structure
@@ -36,7 +36,7 @@ tests/                   # Test files
 
 ### Installation Issues
 - Recommend running `/oh-my-claudecode:doctor` to diagnose problems
-- Check if user installed via correct method: `/plugin marketplace add Yeachan-Heo/oh-my-claudecode`
+- Check if user installed via correct method: `/plugin marketplace add z23cc/oh-my-claudecode`
 - Common issues: outdated Claude Code version, missing dependencies
 
 ### Bug Reports
