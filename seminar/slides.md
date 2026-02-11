@@ -1,7 +1,7 @@
 ---
 title: Oh-My-ClaudeCode
 subtitle: Multi-Agent Orchestration for Autonomous Development
-author: Yeachan Heo
+author: z23cc
 theme: night
 ---
 
