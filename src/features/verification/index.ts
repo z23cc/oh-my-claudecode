@@ -18,6 +18,7 @@ import type {
   VerificationOptions,
   ReportOptions
 } from './types.js';
+import { dispatchReview } from '../../team/review-dispatcher.js';
 
 const execAsync = promisify(exec);
 
@@ -521,6 +522,46 @@ export async function validateChecklist(
     issues,
     recommendations
   };
+}
+
+/**
+ * Create a CODE_REVIEW or SECURITY_REVIEW check that uses the configured backend.
+ * Falls back to manual verification when backend is agent-driven.
+ */
+export function createReviewCheck(
+  type: 'code_review' | 'security_review',
+  projectRoot: string,
+  baseBranch: string,
+  taskBackend?: string,
+  epicBackend?: string
+): VerificationCheck {
+  const isCode = type === 'code_review';
+  const base: VerificationCheck = isCode
+    ? { ...STANDARD_CHECKS.CODE_REVIEW }
+    : { ...STANDARD_CHECKS.SECURITY_REVIEW };
+
+  const reviewType = isCode ? 'impl' as const : 'security' as const;
+  const result = dispatchReview({
+    projectRoot,
+    baseBranch,
+    reviewType,
+    taskBackend,
+    epicBackend,
+  });
+
+  if (result) {
+    base.completed = true;
+    base.evidence = {
+      type: base.evidenceType,
+      passed: result.verdict === 'SHIP',
+      output: result.review,
+      timestamp: new Date(),
+      metadata: { backend: result.backend, receiptPath: result.receiptPath },
+    };
+  }
+  // When result is null, the check stays incomplete (manual verification)
+
+  return base;
 }
 
 // Re-export types

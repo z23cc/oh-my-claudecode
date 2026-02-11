@@ -3,77 +3,17 @@
  *
  * Provides helper functions for interacting with RepoPrompt CLI
  * for token-efficient codebase exploration and review context building.
+ *
+ * Workspace lifecycle (availability, window management, caching) is
+ * handled by ../lib/rp-workspace.ts. This file contains the
+ * operation-level commands (structure, search, review, etc.).
  */
 
 import { execSync, execFileSync } from 'child_process';
-import { resolve } from 'path';
+import { getWorkspace } from '../lib/rp-workspace.js';
 
-/** Check if rp-cli is available */
-export function isRpAvailable(): boolean {
-  try {
-    execSync('which rp-cli', { encoding: 'utf-8', timeout: 3000 });
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-/** Normalize tmp paths for macOS (/tmp vs /private/tmp) */
-function normalizeTmpPath(p: string): string {
-  if (p.startsWith('/private/tmp/')) return p.replace('/private/tmp/', '/tmp/');
-  return p;
-}
-
-/** List available RepoPrompt windows */
-export function listWindows(): Array<{ id: string; name: string; path: string }> {
-  try {
-    const output = execSync('rp-cli windows --json', {
-      encoding: 'utf-8', timeout: 10000,
-    });
-    const windows = JSON.parse(output);
-    return (windows || []).map((w: Record<string, unknown>) => ({
-      id: String(w.id || ''),
-      name: String(w.name || ''),
-      path: normalizeTmpPath(String(w.path || '')),
-    }));
-  } catch {
-    return [];
-  }
-}
-
-/** Pick the best window for a given repo root */
-export function pickWindow(repoRoot: string): string | null {
-  const windows = listWindows();
-  const normalized = normalizeTmpPath(resolve(repoRoot));
-
-  // Exact match first
-  const exact = windows.find(w => normalizeTmpPath(resolve(w.path)) === normalized);
-  if (exact) return exact.id;
-
-  // Prefix match (repo is under a window's path)
-  const prefix = windows.find(w => normalized.startsWith(normalizeTmpPath(resolve(w.path))));
-  if (prefix) return prefix.id;
-
-  return null;
-}
-
-/** Ensure a workspace exists for the given repo, creating if needed */
-export function ensureWorkspace(repoRoot: string): string | null {
-  // Try existing window first
-  const existing = pickWindow(repoRoot);
-  if (existing) return existing;
-
-  // Create new window
-  try {
-    const output = execFileSync('rp-cli', ['create-window', repoRoot, '--json'], {
-      encoding: 'utf-8', timeout: 30000,
-    });
-    const result = JSON.parse(output);
-    return result.id || null;
-  } catch {
-    return null;
-  }
-}
+// Re-export for backward compatibility
+export { isRpAvailable } from '../lib/rp-workspace.js';
 
 /** Get code structure (function/type signatures) for a file */
 export function getStructure(windowId: string, filePath: string): string {
@@ -189,7 +129,7 @@ export function exportPrompt(windowId: string): string {
 
 /**
  * Setup a complete review workflow:
- * 1. Ensure workspace
+ * 1. Ensure workspace (via cached workspace manager)
  * 2. Run builder for context
  * 3. Add changed files to selection
  * 4. Set review prompt
@@ -200,10 +140,10 @@ export function setupReview(
   changedFiles: string[],
   reviewPrompt: string
 ): { windowId: string; response: string } | null {
-  if (!isRpAvailable()) return null;
+  const ws = getWorkspace(repoRoot);
+  if (!ws) return null;
 
-  const windowId = ensureWorkspace(repoRoot);
-  if (!windowId) return null;
+  const { windowId } = ws;
 
   // Run builder for context
   runBuilder(windowId);

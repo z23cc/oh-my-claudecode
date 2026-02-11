@@ -31,7 +31,8 @@ import {
   getArchitectRejectionContinuationPrompt,
   detectArchitectApproval,
   detectArchitectRejection,
-  clearVerificationState
+  clearVerificationState,
+  tryProgrammaticReview
 } from '../ralph/index.js';
 import { checkIncompleteTodos, getNextPendingTodo, StopContext, isUserAbort, isContextLimitStop } from '../todo-continuation/index.js';
 import { TODO_CONTINUATION_PROMPT } from '../../installer/hooks.js';
@@ -277,6 +278,38 @@ async function checkRalphLoop(
   const verificationState = readVerificationState(workingDir, sessionId);
 
   if (verificationState?.pending) {
+    // Try programmatic review gates first (rp backend)
+    const programmaticResult = tryProgrammaticReview(
+      workingDir, verificationState, 'main', sessionId
+    );
+    if (programmaticResult) {
+      const { state: updatedState, reviewOutput } = programmaticResult;
+      // If both reviews passed, inject results and continue to architect verification
+      if (updatedState.code_review_passed && updatedState.security_review_passed) {
+        // Reviews done — update prompt to skip review gates
+        const verificationPrompt = getArchitectVerificationPrompt(updatedState);
+        return {
+          shouldBlock: true,
+          message: `<programmatic-review-results>\n${reviewOutput}\n</programmatic-review-results>\n\n${verificationPrompt}`,
+          mode: 'ralph',
+          metadata: {
+            iteration: state.iteration,
+            maxIterations: state.max_iterations
+          }
+        };
+      }
+      // Some reviews failed — inject failure output for agent to fix
+      return {
+        shouldBlock: true,
+        message: `<programmatic-review-results>\n${reviewOutput}\n\nFix the issues above, then re-run verification.\n</programmatic-review-results>\n`,
+        mode: 'ralph',
+        metadata: {
+          iteration: state.iteration,
+          maxIterations: state.max_iterations
+        }
+      };
+    }
+
     // Verification is in progress - check for architect's response
     if (sessionId) {
       // Check for architect approval

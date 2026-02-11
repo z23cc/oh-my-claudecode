@@ -15,6 +15,7 @@
 import { existsSync, readFileSync, writeFileSync, unlinkSync, mkdirSync } from 'fs';
 import { join } from 'path';
 import { resolveSessionStatePath, ensureSessionStateDir } from '../../lib/worktree-paths.js';
+import { dispatchReview } from '../../team/review-dispatcher.js';
 
 export interface VerificationState {
   /** Whether verification is pending */
@@ -284,6 +285,69 @@ Continue working now.
  */
 export function detectArchitectApproval(text: string): boolean {
   return /<architect-approved>.*?VERIFIED_COMPLETE.*?<\/architect-approved>/is.test(text);
+}
+
+/**
+ * Attempt to run code/security reviews programmatically via configured backend.
+ * Returns updated state with review results, or null if backend is agent-driven.
+ */
+export function tryProgrammaticReview(
+  directory: string,
+  state: VerificationState,
+  baseBranch: string,
+  sessionId?: string
+): { state: VerificationState; reviewOutput: string } | null {
+  const parts: string[] = [];
+  let updated = false;
+
+  // Try code review if not yet passed
+  if (!state.code_review_passed) {
+    const result = dispatchReview({
+      projectRoot: directory,
+      baseBranch,
+      reviewType: 'impl',
+    });
+
+    if (!result) return null; // agent-driven backend — fall back to prompts
+
+    updated = true;
+    state.code_review_attempts += 1;
+    if (result.verdict === 'SHIP') {
+      state.code_review_passed = true;
+      parts.push(`[CODE REVIEW: SHIP via ${result.backend}]`);
+    } else {
+      parts.push(`[CODE REVIEW: ${result.verdict ?? 'NO_VERDICT'} via ${result.backend}]`);
+      parts.push(result.review);
+    }
+  }
+
+  // Try security review if not yet passed
+  if (!state.security_review_passed) {
+    const result = dispatchReview({
+      projectRoot: directory,
+      baseBranch,
+      reviewType: 'security',
+    });
+
+    if (!result && !updated) return null; // agent-driven — fall back
+
+    if (result) {
+      updated = true;
+      state.security_review_attempts += 1;
+      if (result.verdict === 'SHIP') {
+        state.security_review_passed = true;
+        parts.push(`[SECURITY REVIEW: SHIP via ${result.backend}]`);
+      } else {
+        parts.push(`[SECURITY REVIEW: ${result.verdict ?? 'NO_VERDICT'} via ${result.backend}]`);
+        parts.push(result.review);
+      }
+    }
+  }
+
+  if (!updated) return null;
+
+  writeVerificationState(directory, state, sessionId);
+  return { state, reviewOutput: parts.join('\n\n') };
 }
 
 /**

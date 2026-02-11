@@ -385,6 +385,29 @@ export function parseVerdict(output: string): ReviewVerdict | null {
   return match ? match[1] as ReviewVerdict : null;
 }
 
+/**
+ * Execute a review using the rp (RepoPrompt) backend.
+ * Returns null when rp-cli is unavailable so the caller can fall back.
+ */
+export function executeRpReview(
+  projectRoot: string,
+  changedFiles: string[],
+  reviewPrompt: string
+): { verdict: ReviewVerdict | null; review: string } | null {
+  // Lazy import to avoid loading rp modules when the rp backend is not selected
+  const { getWorkspace } = require('../lib/rp-workspace.js') as typeof import('../lib/rp-workspace.js');
+  const { setupReview } = require('./rp-integration.js') as typeof import('./rp-integration.js');
+
+  const ws = getWorkspace(projectRoot);
+  if (!ws) return null; // rp-cli not available — caller handles fallback
+
+  const result = setupReview(projectRoot, changedFiles, reviewPrompt);
+  if (!result) return null;
+
+  const verdict = parseVerdict(result.response);
+  return { verdict, review: result.response };
+}
+
 /** Write a review receipt to disk */
 export function writeReceipt(projectRoot: string, receipt: ReviewReceipt): string {
   const receiptsDir = join(projectRoot, '.omc', 'receipts');

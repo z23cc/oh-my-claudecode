@@ -168,3 +168,20 @@ export {
 } from './permissions.js';
 
 export type { WorkerPermissions } from './permissions.js';
+
+export { dispatchReview } from './review-dispatcher.js';
+export type { ReviewResult } from './review-dispatcher.js';
+
+export {
+  resolveReviewBackend,
+  executeRpReview,
+  buildReviewPrompt,
+  parseVerdict,
+  writeReceipt,
+} from './review-backend.js';
+export type {
+  ReviewVerdict,
+  ReviewBackendType,
+  ReviewReceipt,
+  BackendSpec,
+} from './review-backend.js';

@@ -129,6 +129,9 @@ export {
   startVerification,
   recordArchitectFeedback,
 
+  // Programmatic review dispatch
+  tryProgrammaticReview,
+
   // Prompts & detection
   getArchitectVerificationPrompt,
   getArchitectRejectionContinuationPrompt,
