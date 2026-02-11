@@ -17,13 +17,29 @@ This skill activates when:
 
 ## What It Does
 
-Delegates to the `code-reviewer` agent (Opus model) for deep analysis:
+### Phase 1: Gather Context FIRST (before delegation)
 
-1. **Identify Changes**
-   - Run `git diff` to find changed files
-   - Determine scope of review (specific files or entire PR)
+**Run these steps yourself before spawning the reviewer agent.** This prevents the reviewer from duplicating expensive context-gathering work.
 
-2. **Review Categories**
+```bash
+# 1. Identify what changed
+git diff --name-only HEAD~1          # or against base branch
+git diff --stat HEAD~1               # summary of changes
+
+# 2. Get a concrete diff summary
+git diff HEAD~1 -- <changed files>   # actual diff content
+```
+
+Save:
+- List of changed files
+- Diff summary (1-2 sentences describing what changed and why)
+- Diff content for the reviewer
+
+### Phase 2: Delegate with Concrete Context
+
+Pass the gathered context to the `code-reviewer` agent (Opus model). **Do NOT ask the agent to re-discover changes** — provide them directly.
+
+1. **Review Categories**
    - **Security** - Hardcoded secrets, injection risks, XSS, CSRF
    - **Code Quality** - Function size, complexity, nesting depth
    - **Performance** - Algorithm efficiency, N+1 queries, caching
@@ -51,7 +67,9 @@ Task(
 
 Review code changes for quality, security, and maintainability.
 
-Scope: [git diff or specific files]
+Changed files: [paste file list from Phase 1]
+Diff summary: [paste 1-2 sentence summary from Phase 1]
+Diff content: [paste relevant diff from Phase 1]
 
 Review Checklist:
 - Security vulnerabilities (OWASP Top 10)

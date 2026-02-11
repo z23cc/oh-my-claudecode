@@ -19,7 +19,28 @@ This skill activates when:
 
 ## What It Does
 
-Delegates to the `security-reviewer` agent (Opus model) for deep security analysis:
+### Phase 1: Gather Context FIRST (before delegation)
+
+**Run these steps yourself before spawning the security-reviewer agent.** This prevents the reviewer from duplicating expensive context-gathering work.
+
+```bash
+# 1. Identify what changed
+git diff --name-only HEAD~1          # or against base branch
+git diff --stat HEAD~1               # summary of changes
+
+# 2. Focus on security-relevant files
+# Filter for: auth, api, input handling, crypto, config, dependencies
+git diff HEAD~1 -- <security-relevant files>
+```
+
+Save:
+- List of changed files (highlight security-relevant ones)
+- Diff summary (1-2 sentences describing what changed)
+- Diff content for the reviewer
+
+### Phase 2: Delegate with Concrete Context
+
+Pass the gathered context to the `security-reviewer` agent (Opus model). **Do NOT ask the agent to re-discover changes** — provide them directly.
 
 1. **OWASP Top 10 Scan**
    - A01: Broken Access Control
@@ -68,7 +89,9 @@ Task(
 
 Conduct comprehensive security audit of codebase.
 
-Scope: [specific files or entire codebase]
+Changed files: [paste file list from Phase 1]
+Diff summary: [paste 1-2 sentence summary from Phase 1]
+Diff content: [paste relevant diff from Phase 1]
 
 Security Checklist:
 1. OWASP Top 10 scan

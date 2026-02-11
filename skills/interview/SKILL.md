@@ -16,6 +16,17 @@ Where `[target]` can be:
 - A file path to an existing spec ("docs/auth-spec.md")
 - Empty (will prompt for target)
 
+## NOT in Scope (defer to other skills)
+
+Interview focuses ONLY on extracting requirements through questioning. Do NOT:
+
+- **Research code or read files** — save for planning phase
+- **Create implementation tasks** — that's `/oh-my-claudecode:plan`'s job
+- **Add file/line references** — planning does codebase analysis
+- **Size tasks (S/M/L)** — planning determines sizing
+- **Write implementation code** — execution phase only
+- **Determine dependency ordering** — planning handles sequencing
+
 ## Protocol
 
 ### Phase 1: Understand Context
@@ -23,112 +34,88 @@ Where `[target]` can be:
 Before asking questions, gather context:
 1. Read any provided spec file or description
 2. Check `.omc/project-memory.json` for related conventions and pitfalls
-3. Scan the codebase for existing related code patterns
+3. Note what you already know — avoid asking questions the context already answers
 
 ### Phase 2: Systematic Interview
 
 Use `AskUserQuestion` for ALL questions — never output questions as plain text.
 
+**Anti-pattern (WRONG)**:
+```
+Question 1: What database should we use?
+Options: a) PostgreSQL b) SQLite c) MongoDB
+```
+
+**Correct pattern**: Call `AskUserQuestion` tool with question and options.
+
 Group 2-4 related questions per `AskUserQuestion` call. Target **40+ questions** for complex features, **15-20** for smaller ones.
 
-**Question Categories:**
-
-**1. Core Requirements (5-8 questions)**
-- What is the primary user problem this solves?
-- Who are the target users? What are their skill levels?
-- What does success look like? How will you measure it?
-- What are the must-have vs nice-to-have requirements?
-
-**2. User Flows (5-8 questions)**
-- Walk through the happy path step by step
-- What happens on each error case?
-- What are the entry/exit points?
-- Are there multiple user roles with different flows?
-
-**3. Data & State (4-6 questions)**
-- What data entities are involved?
-- Where is data stored? What's the source of truth?
-- What state transitions exist?
-- What validation rules apply?
-
-**4. Integration Points (4-6 questions)**
-- What external services/APIs are involved?
-- What existing code needs to be modified?
-- Are there authentication/authorization requirements?
-- What about rate limiting, caching, retries?
-
-**5. Edge Cases & Error Handling (5-8 questions)**
-- What happens with invalid input?
-- Concurrent access scenarios?
-- Network failures?
-- What are the boundary conditions?
-
-**6. Non-Functional Requirements (4-6 questions)**
-- Performance expectations?
-- Security requirements?
-- Accessibility requirements?
-- Browser/platform support?
-
-**7. Testing Strategy (3-5 questions)**
-- What test cases are critical?
-- What mocking is needed?
-- What integration tests?
-
-**8. Migration & Rollout (3-5 questions)**
-- Is there existing data to migrate?
-- Can this be feature-flagged?
-- What's the rollback plan?
+Read [questions.md](questions.md) for all question categories and interview guidelines.
 
 ### Phase 3: Write Refined Spec
 
 After completing the interview:
 
-1. Write a comprehensive spec document:
-   ```
-   .omc/specs/{feature-slug}.md
-   ```
+**Overwrite protection**: Before writing, check if the target spec already exists:
 
-2. Spec format:
-   ```markdown
-   # {Feature Name} Specification
+```
+Check: .omc/specs/{feature-slug}.md
+```
 
-   ## Summary
-   One-paragraph overview with key decisions made during interview.
+- **If spec exists with substantial content**: Do NOT overwrite. Only APPEND new sections:
+  - New edge cases discovered in interview
+  - Additional acceptance criteria
+  - Updated requirements or decisions
+  - Prefix appended sections with `## Interview Update ({date})`
 
-   ## Requirements
-   - [ ] Requirement 1 (must-have)
-   - [ ] Requirement 2 (must-have)
-   - [ ] Requirement 3 (nice-to-have)
+- **If spec is empty/minimal or does not exist**: Write the full spec.
 
-   ## User Flows
-   ### Happy Path
-   Step-by-step flow...
+Spec location and format:
 
-   ### Error Cases
-   Error handling for each failure mode...
+```
+.omc/specs/{feature-slug}.md
+```
 
-   ## Data Model
-   Entities, relationships, validation rules...
+```markdown
+# {Feature Name} Specification
 
-   ## Technical Design
-   Architecture decisions, integration points...
+## Summary
+One-paragraph overview with key decisions made during interview.
 
-   ## Edge Cases
-   Documented edge cases with expected behavior...
+## Key Decisions
+Decisions made during interview (e.g., "Use OAuth not SAML", "Support mobile + web")
 
-   ## Test Plan
-   Critical test cases...
+## Requirements
+- [ ] Requirement 1 (must-have)
+- [ ] Requirement 2 (must-have)
+- [ ] Requirement 3 (nice-to-have)
 
-   ## Open Questions
-   Any unresolved items...
-   ```
+## User Flows
+### Happy Path
+Step-by-step flow...
+
+### Error Cases
+Error handling for each failure mode...
+
+## Data Model
+Entities, relationships, validation rules...
+
+## Edge Cases
+Documented edge cases with expected behavior...
+
+## Test Plan
+Critical test cases...
+
+## Open Questions
+Any unresolved items that need research during planning...
+```
 
 ### Phase 4: Completion Summary
 
 Report:
 - Number of questions asked
 - Key decisions captured
-- Spec file location
+- Spec file location (written or updated)
 - Suggest next step: `/oh-my-claudecode:plan` to create implementation tasks
 
 ## Rules
@@ -136,6 +123,6 @@ Report:
 - ALWAYS use `AskUserQuestion` tool — never dump questions as text
 - Group related questions (2-4 per call) for efficient conversation flow
 - If the user says "skip" or "default", note reasonable defaults and move on
-- Do NOT research code or read files during the interview (save for planning phase)
-- Do NOT create implementation tasks (that's the plan skill's job)
 - Capture decisions as they're made — don't wait until the end
+- Check for existing spec content before writing — never silently overwrite
+- Quality over speed — user should feel they've thought through everything
